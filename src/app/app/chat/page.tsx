@@ -1,3 +1,259 @@
-export default function Page() {
-  return <div>Chat Page</div>;
+'use client';
+
+/**
+ * Intenus Protocol Chat Interface
+ * Natural language DeFi intent builder
+ */
+
+import { useChat } from '@ai-sdk/react';
+import { Box, Container, Flex, Heading, Text, VStack, Input, Button, Card } from '@chakra-ui/react';
+import { useState, useRef, useEffect, FormEvent } from 'react';
+import { FiSend, FiLoader } from 'react-icons/fi';
+
+// Helper function to extract text from message parts
+function getMessageText(message: any): string {
+  if (!message.parts) return '';
+  return message.parts
+    .filter((part: any) => part.type === 'text')
+    .map((part: any) => part.text)
+    .join('\n');
+}
+
+// Helper function to get IGS Intent from tool results
+function getIGSIntent(message: any): any {
+  if (!message.parts) return null;
+  
+  const igsToolResult = message.parts.find((part: any) => 
+    part.type === 'tool-result' && part.toolName === 'buildIGSIntent'
+  );
+  
+  return igsToolResult?.result || null;
+}
+
+export default function ChatPage() {
+  const [input, setInput] = useState('');
+
+  const { messages, status, sendMessage } = useChat({
+    id: 'intenus-chat',
+    messages: [
+      {
+        id: 'welcome',
+        role: 'assistant',
+        parts: [{
+          type: 'text',
+          text: `Welcome to Intenus Protocol! 👋
+
+I'm your DeFi assistant. I can help you:
+
+✨ **Swap tokens** with 20-40% better rates
+🛡️ **MEV protection** via batch auctions
+🔒 **Privacy options** for large trades
+⚡ **Optimal routing** across all Sui DEXs
+
+**Popular actions:**
+- "Swap 100 SUI to USDC"
+- "Check SUI price"
+- "Show top DEXs on Sui"
+- "What's my wallet balance?"
+
+What would you like to do?`
+        }]
+      }
+    ]
+  });
+
+  const isLoading = status === 'submitted' || status === 'streaming';
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+    sendMessage({ text: input });
+    setInput('');
+  };
+
+  return (
+    <Box minH="100vh" bg="gray.50" _dark={{ bg: 'gray.900' }}>
+      <Container maxW="container.lg" py={8}>
+        <VStack gap={6} align="stretch">
+          {/* Header */}
+          <Box>
+            <Heading size="2xl" mb={2}>
+              Intenus Protocol
+            </Heading>
+            <Text color="gray.600" _dark={{ color: 'gray.400' }}>
+              Intent-based DeFi aggregation on Sui
+            </Text>
+          </Box>
+
+          {/* Chat Messages */}
+          <Card.Root
+            h="60vh"
+            overflowY="auto"
+            p={4}
+            bg="white"
+            _dark={{ bg: 'gray.800' }}
+            boxShadow="lg"
+          >
+            <Card.Body>
+              <VStack gap={4} align="stretch">
+                {messages.map((message: any) => (
+                  <Box
+                    key={message.id}
+                    alignSelf={message.role === 'user' ? 'flex-end' : 'flex-start'}
+                    maxW="80%"
+                  >
+                    <Box
+                      bg={message.role === 'user' ? 'blue.500' : 'gray.100'}
+                      color={message.role === 'user' ? 'white' : 'gray.900'}
+                      _dark={{
+                        bg: message.role === 'user' ? 'blue.600' : 'gray.700',
+                        color: 'white'
+                      }}
+                      px={4}
+                      py={3}
+                      borderRadius="lg"
+                      boxShadow="sm"
+                    >
+                      <Text fontSize="sm" fontWeight="semibold" mb={1} opacity={0.8}>
+                        {message.role === 'user' ? 'You' : 'Intenus'}
+                      </Text>
+                      <Box
+                        css={{
+                          '& p': { marginBottom: '0.5rem' },
+                          '& ul': { paddingLeft: '1.5rem', marginBottom: '0.5rem' },
+                          '& li': { marginBottom: '0.25rem' },
+                          '& strong': { fontWeight: 'bold' },
+                          '& code': {
+                            backgroundColor: message.role === 'user' ? 'rgba(0,0,0,0.1)' : 'rgba(0,0,0,0.05)',
+                            padding: '0.2rem 0.4rem',
+                            borderRadius: '0.25rem',
+                            fontSize: '0.9em'
+                          }
+                        }}
+                      >
+                        <Text whiteSpace="pre-wrap">
+                          {getMessageText(message)}
+                        </Text>
+                      </Box>
+
+                      {/* Display IGS Intent if available */}
+                      {(() => {
+                        const igsIntent = getIGSIntent(message);
+                        if (igsIntent) {
+                          return (
+                            <Box mt={3} p={3} bg="green.50" _dark={{ bg: 'green.900' }} borderRadius="md" borderLeftWidth="4px" borderLeftColor="green.500">
+                              <Text fontSize="sm" fontWeight="bold" color="green.700" _dark={{ color: 'green.300' }} mb={2}>
+                                🎯 IGS Intent Generated
+                              </Text>
+                              <Box fontSize="xs" fontFamily="mono" bg="white" _dark={{ bg: 'gray.800' }} p={2} borderRadius="md">
+                                <pre style={{ whiteSpace: 'pre-wrap', overflow: 'auto' }}>
+                                  {JSON.stringify(igsIntent, null, 2)}
+                                </pre>
+                              </Box>
+                            </Box>
+                          );
+                        }
+                        return null;
+                      })()}
+
+                      {/* Display other tool invocations */}
+                      {message.parts && message.parts.some((p: any) => p.type === 'tool-call' || p.type === 'tool-result') && (
+                        <Box mt={2} pt={2} borderTopWidth="1px" borderColor="whiteAlpha.300">
+                          {message.parts
+                            .filter((p: any) => p.type === 'tool-call')
+                            .map((tool: any) => {
+                              // Skip buildIGSIntent as it's handled above
+                              if (tool.toolName === 'buildIGSIntent') return null;
+                              
+                              return (
+                                <Box key={tool.toolCallId} fontSize="xs" opacity={0.8} mb={1}>
+                                  <Text>
+                                    🔧 {tool.toolName}
+                                    {message.parts.some((p: any) => 
+                                      p.type === 'tool-result' && p.toolCallId === tool.toolCallId
+                                    ) && ' ✓'}
+                                  </Text>
+                                </Box>
+                              );
+                            })}
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                ))}
+
+                {isLoading && (
+                  <Box alignSelf="flex-start">
+                    <Flex
+                      align="center"
+                      gap={2}
+                      bg="gray.100"
+                      _dark={{ bg: 'gray.700' }}
+                      px={4}
+                      py={3}
+                      borderRadius="lg"
+                    >
+                      <FiLoader className="animate-spin" />
+                      <Text fontSize="sm">Thinking...</Text>
+                    </Flex>
+                  </Box>
+                )}
+
+                <div ref={messagesEndRef} />
+              </VStack>
+            </Card.Body>
+          </Card.Root>
+
+          {/* Input Form */}
+          <form onSubmit={handleFormSubmit}>
+            <Flex gap={2}>
+              <Input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask me anything about DeFi on Sui..."
+                size="lg"
+                bg="white"
+                _dark={{ bg: 'gray.800' }}
+                disabled={isLoading}
+              />
+              <Button
+                type="submit"
+                colorPalette="blue"
+                size="lg"
+                disabled={isLoading || !input.trim()}
+              >
+                <FiSend />
+              </Button>
+            </Flex>
+          </form>
+
+          {/* Footer Info */}
+          <Box
+            p={4}
+            bg="blue.50"
+            _dark={{ bg: 'blue.900' }}
+            borderRadius="md"
+            fontSize="sm"
+          >
+            <Text fontWeight="semibold" mb={2}>
+              💡 Powered by Intenus Protocol
+            </Text>
+            <Text color="gray.600" _dark={{ color: 'gray.400' }}>
+              All intents use IGS (Intenus General Standard) v1.0 for measurable, verifiable DeFi operations.
+              Your transactions are protected from MEV and optimized through solver competition.
+            </Text>
+          </Box>
+        </VStack>
+      </Container>
+    </Box>
+  );
 }

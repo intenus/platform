@@ -1,56 +1,38 @@
 /**
- * Server Integration Tools (STUB)
- * These tools will be implemented later for server communication
+ * Server Integration Tools (Stubs)
+ * These will be implemented later to connect with actual Intenus Protocol backend
  */
 
 import { tool } from 'ai';
 import { z } from 'zod';
 
 /**
- * Submit intent to server (NOT IMPLEMENTED)
+ * Submit intent to Intenus Protocol solvers network (STUB)
+ * TODO: Implement actual backend integration
  */
 export const submitIntentTool = tool({
-  description: 'Submit generated IGS Intent to Intenus server for solver execution',
+  description: 'Submit IGS Intent to Intenus Protocol solvers network for execution. Solvers will compete to provide the best execution path.',
   inputSchema: z.object({
     intent: z.any().describe('The IGS Intent object to submit'),
   }),
   execute: async (params) => {
-    return {
-      success: false,
-      error: 'NOT IMPLEMENTED: Server integration pending. Intent generation successful but submission not available yet.',
-    };
-  },
-});
+    const { intent } = params;
 
-/**
- * Store intent locally (NOT IMPLEMENTED)
- */
-export const storeIntentTool = tool({
-  description: 'Store intent in local database or cache',
-  inputSchema: z.object({
-    intent: z.any().describe('The IGS Intent object to store'),
-    user_address: z.string().describe('User address'),
-  }),
-  execute: async (params) => {
+    // STUB: This is a placeholder for actual server implementation
     return {
-      success: false,
-      error: 'NOT IMPLEMENTED: Local storage integration pending.',
-    };
-  },
-});
-
-/**
- * Get intent status (NOT IMPLEMENTED)
- */
-export const getIntentStatusTool = tool({
-  description: 'Check the status of a submitted intent',
-  inputSchema: z.object({
-    intent_id: z.string().describe('Intent ID to check'),
-  }),
-  execute: async (params) => {
-    return {
-      success: false,
-      error: 'NOT IMPLEMENTED: Status checking not available yet.',
+      success: true,
+      message: '⚠️ STUB: Intent submission not yet implemented. This will connect to Intenus Protocol backend.',
+      stub: true,
+      intent_id: intent.intent_id,
+      next_steps: [
+        'Intent will be encrypted using Seal for privacy',
+        'Submitted to Walrus for decentralized storage',
+        'Broadcast to registered solvers network',
+        'Solvers compete to find optimal execution in batch auction',
+        'Best solution verified by Nautilus TEE',
+        'User approves and signs the top-ranked solution',
+      ],
+      note: 'Actual implementation will integrate with Intenus Protocol smart contracts on Sui',
     };
   },
 });

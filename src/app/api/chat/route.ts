@@ -1,5 +1,5 @@
 /**
- * Chat API Route - IGS Intent Chatbot
+ * Chat API Route - Intenus Protocol IGS Intent Chatbot
  * Uses AI SDK streamText with OpenAI
  */
 
@@ -7,7 +7,6 @@ import { openai } from '@ai-sdk/openai';
 import { streamText, convertToModelMessages, UIMessage } from 'ai';
 import { SYSTEM_PROMPT } from '@/lib/context/system-prompt';
 import { LLAMA_API_CONTEXT } from '@/lib/context/llama-context';
-import { COINGECKO_API_CONTEXT } from '@/lib/context/coingecko-context';
 
 // Market tools
 import { getMarketPriceTool, getProtocolInfoTool, getMarketOverviewTool } from '@/lib/tools/market-tools';
@@ -21,26 +20,20 @@ import { submitIntentTool } from '@/lib/tools/server-tools';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+  try {
+
   const { messages }: { messages: UIMessage[] } = await req.json();
-
-  // Convert UIMessage[] to ModelMessage[]
-  const modelMessages = convertToModelMessages(messages);
-
-  // Combine system prompt with API context
-  const systemPrompt = `${SYSTEM_PROMPT}
-
----
-## API References (for your information)
-
-${LLAMA_API_CONTEXT}
-
-${COINGECKO_API_CONTEXT}
-`;
 
   const result = streamText({
     model: openai(process.env.OPENAI_MODEL || 'gpt-4o-mini'),
-    messages: modelMessages,
-    system: systemPrompt,
+    messages: convertToModelMessages(messages),
+    system: `${SYSTEM_PROMPT}
+
+    ---
+    ## API References (for your information)
+
+    ${LLAMA_API_CONTEXT}
+    `,
     tools: {
       // Market data tools
       getMarketPrice: getMarketPriceTool,
@@ -60,4 +53,11 @@ ${COINGECKO_API_CONTEXT}
   });
 
   return result.toUIMessageStreamResponse();
+  } catch (error) {
+    console.error('Error in chat API:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
 }

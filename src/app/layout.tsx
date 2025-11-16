@@ -1,22 +1,10 @@
 import type { Metadata } from "next";
-import { Provider } from "./provider";
-// import { Geist, Geist_Mono } from "next/font/google";
-// import "./globals.css";
-
-// Disabled Google Fonts due to build issues
-// const geistSans = Geist({
-//   variable: "--font-geist-sans",
-//   subsets: ["latin"],
-// });
-
-// const geistMono = Geist_Mono({
-//   variable: "--font-geist-mono",
-//   subsets: ["latin"],
-// });
+import "./globals.css";
+import { Provider } from "@/app/provider";
 
 export const metadata: Metadata = {
-  title: "Sui Swap Assistant",
-  description: "AI-powered swap intent builder for Sui blockchain",
+  title: "Intenus Protocol - Intent-based DeFi on Sui",
+  description: "Natural language DeFi aggregation with MEV protection and optimal routing",
 };
 
 export default function RootLayout({
@@ -26,8 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
-        <Provider>{children}</Provider>
+      <body style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+        <Provider>
+          {children}
+        </Provider>
       </body>
     </html>
   );
