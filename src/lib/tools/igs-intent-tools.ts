@@ -13,11 +13,10 @@ import { getTokenInfo, parseTokenAmount, getAllBalances, isValidSuiAddress, norm
  */
 export const getUserBalanceTool = tool({
   description: 'Check user token balances on Sui blockchain for any supported token (SUI, USDC, USDT, WETH, WALRUS)',
-  parameters: z.object({
+  inputSchema: z.object({
     user_address: z.string().describe('User Sui wallet address (0x... format)'),
   }),
-  execute: async (params) => {
-    const { user_address } = params;
+  execute: async ({ user_address }) => {
 
     try {
       if (!isValidSuiAddress(user_address)) {
@@ -55,7 +54,7 @@ export const getUserBalanceTool = tool({
  */
 export const buildIGSIntentTool = tool({
   description: 'Build IGS (Intenus General Standard) Intent from user requirements. Works for swaps, limit orders, and more. Uses IntentBuilder from @intenus/common to ensure IGS v1.0 compliance.',
-  parameters: z.object({
+  inputSchema: z.object({
     user_address: z.string().describe('User wallet address'),
     intent_type: z.enum(['swap.exact_input', 'swap.exact_output', 'limit.sell', 'limit.buy']).describe('Type of intent operation'),
     input_token: z.string().describe('Input token symbol (e.g., SUI, USDC, WALRUS)'),
