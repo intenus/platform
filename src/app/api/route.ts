@@ -1,15 +1,16 @@
 /**
  * Main Chat API Endpoint
- * Handles conversation flow, tool calling, and IGS Intent generation
+ * Handles conversation flow, tool calling, and IGS Intent generation for Intenus Protocol
  */
 
 import { openai } from '@ai-sdk/openai';
 import { streamText, tool } from 'ai';
 import { z } from 'zod';
-import type { ConversationData } from '../../../lib/intent-builder';
+import { IntentBuilder } from '@intenus/common';
 import { llamaClient } from '@/libs/llamaClient';
 import { suiClient } from '@/libs/suiClient';
-import {IntentBuilder} from"@intenus/common";
+import { SYSTEM_PROMPT } from '@/lib/context/system-prompt';
+
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
@@ -18,53 +19,18 @@ export async function POST(req: Request) {
   const result = streamText({
     model: openai('gpt-4'),
     messages,
-    system: `You are an expert DeFi assistant for the Sui blockchain ecosystem. Your role is to help users create optimal DeFi intents using natural language.
-
-**Your Knowledge:**
-- Sui is a layer-1 blockchain with $7.9B+ TVL and 200+ DeFi protocols
-- Major protocols: Cetus, Turbos Finance, Interest Protocol, FlowX, NAVI Protocol
-- Native token: SUI (current price ~$2.17)
-- Popular tokens: USDC, USDT, WETH, WBTC
-- Categories: DEX, Lending, Yield Farming, Derivatives, Bridges
-
-**Your Process:**
-1. **Understand Intent**: What DeFi operation does the user want? (swap, lend, borrow, yield farm, limit order)
-2. **Gather Parameters**: Collect all required details step-by-step
-3. **Provide Context**: Use tools to fetch real-time market data
-4. **Build Intent**: Create a valid IGS Intent for Intenus Protocol
-5. **Present Options**: Show the user a clear summary and next steps
-
-**Available Tools:**
-- getMarketData: Fetch real-time prices and market data
-- getSuiProtocols: Get information about DeFi protocols
-- getUserBalance: Check user's token balances  
-- validateIntent: Validate intent parameters
-- generateIntent: Create final IGS Intent
-
-**Conversation Style:**
-- Be conversational and helpful
-- Ask clarifying questions when needed
-- Provide market context and recommendations
-- Explain risks and benefits clearly
-- Use emojis sparingly but appropriately
-
-**Current Market Context:** 
-- SUI Price: $2.17
-- Total Sui TVL: $7.9B
-- Daily DEX Volume: $273M+
-- Active protocols: 200+
-
-Start by understanding what the user wants to do in DeFi.`,
+    system: SYSTEM_PROMPT,
 
     tools: {
       getMarketData: tool({
-        description: 'Get real-time market data for Sui tokens and protocols',
+        description: 'Get real-time market data for Sui tokens and protocols from DeFiLlama',
         parameters: z.object({
           tokens: z.array(z.string()).describe('Token symbols to get data for (e.g. ["SUI", "USDC"])'),
-          include_protocols: z.boolean().default(false).describe('Include protocol data'),
+          include_protocols: z.boolean().default(false).describe('Include top protocol data'),
           include_yield: z.boolean().default(false).describe('Include yield opportunities')
         }),
-        execute: async ({ tokens, include_protocols, include_yield }) => {
+        execute: async (args) => {
+          const { tokens, include_protocols, include_yield } = args;
           try {
             const [marketData, protocols, yields] = await Promise.all([
               llamaClient.getSuiMarketData(),
@@ -126,7 +92,8 @@ Start by understanding what the user wants to do in DeFi.`,
           search_query: z.string().optional().describe('Search term for protocol name'),
           limit: z.number().default(5).describe('Number of protocols to return')
         }),
-        execute: async ({ category, search_query, limit }) => {
+        execute: async (args) => {
+          const { category, search_query, limit } = args;
           try {
             let protocols;
             
@@ -165,7 +132,8 @@ Start by understanding what the user wants to do in DeFi.`,
           user_address: z.string().describe('User Sui address'),
           tokens: z.array(z.string()).optional().describe('Specific tokens to check')
         }),
-        execute: async ({ user_address, tokens }) => {
+        execute: async (args) => {
+          const { user_address, tokens } = args;
           try {
             if (!suiClient.isValidSuiAddress(user_address)) {
               return {
@@ -215,16 +183,17 @@ Start by understanding what the user wants to do in DeFi.`,
           slippage_bps: z.number().default(50).describe('Slippage tolerance in basis points'),
           deadline_minutes: z.number().default(5).describe('Transaction deadline in minutes')
         }),
-        execute: async ({ 
-          intent_type, 
-          input_token, 
-          input_amount, 
-          output_token, 
-          output_amount,
-          user_address,
-          slippage_bps,
-          deadline_minutes
-        }) => {
+        execute: async (args) => {
+          const {
+            intent_type,
+            input_token,
+            input_amount,
+            output_token,
+            output_amount,
+            user_address,
+            slippage_bps,
+            deadline_minutes
+          } = args;
           try {
             // Validate address
             if (!suiClient.isValidSuiAddress(user_address)) {
@@ -319,113 +288,96 @@ Start by understanding what the user wants to do in DeFi.`,
       }),
 
       generateIntent: tool({
-        description: 'Generate final IGS Intent from collected conversation data',
+        description: 'Generate final IGS Intent using Intenus Protocol standard',
         parameters: z.object({
           intent_type: z.enum(['swap.exact_input', 'swap.exact_output', 'limit.sell', 'limit.buy']),
-          input_token: z.string(),
-          input_amount: z.string(),
-          output_token: z.string(),
-          min_output_amount: z.string().optional(),
-          desired_output_amount: z.string().optional(),
-          user_address: z.string(),
-          slippage_bps: z.number().default(50),
-          deadline_minutes: z.number().default(5),
+          input_token: z.string().describe('Input token symbol'),
+          input_amount: z.string().describe('Input amount in human-readable format'),
+          output_token: z.string().describe('Output token symbol'),
+          min_output_amount: z.string().optional().describe('Minimum output amount (for slippage protection)'),
+          user_address: z.string().describe('User Sui address'),
+          slippage_bps: z.number().default(50).describe('Slippage tolerance in basis points'),
+          deadline_minutes: z.number().default(5).describe('Transaction deadline in minutes'),
           optimization_goal: z.enum(['maximize_output', 'minimize_gas', 'fastest_execution', 'balanced']).default('balanced'),
-          auto_execute: z.boolean().default(false),
-          require_simulation: z.boolean().default(true),
-          privacy_level: z.enum(['public', 'private']).default('public'),
-          limit_price: z.string().optional().describe('For limit orders only'),
-          limit_comparison: z.enum(['gte', 'lte']).optional().describe('For limit orders only')
+          auto_execute: z.boolean().default(false).describe('Auto-execute best solution'),
+          privacy_level: z.enum(['public', 'private']).default('public').describe('Intent privacy level'),
+          limit_price: z.string().optional().describe('Limit price for limit orders'),
         }),
         execute: async (params) => {
           try {
-            // Get required data
-            const [marketData, userBalances, inputTokenInfo, outputTokenInfo] = await Promise.all([
-              llamaClient.getSuiMarketData(),
-              suiClient.getUserBalances(suiClient.normalizeSuiAddress(params.user_address)),
-              suiClient.getTokenInfo(
-                params.input_token.toLowerCase() === 'sui' ? '0x2::sui::SUI' :
-                params.input_token.toLowerCase() === 'usdc' ? '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN' :
-                '0x2::sui::SUI' // fallback
-              ),
-              suiClient.getTokenInfo(
-                params.output_token.toLowerCase() === 'usdc' ? '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN' :
-                params.output_token.toLowerCase() === 'sui' ? '0x2::sui::SUI' :
-                '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN' // fallback
-              )
-            ]);
+            // Get token info
+            const popularTokens = await suiClient.getPopularTokens();
+            const inputTokenInfo = popularTokens.find(t =>
+              t.symbol.toLowerCase() === params.input_token.toLowerCase()
+            );
+            const outputTokenInfo = popularTokens.find(t =>
+              t.symbol.toLowerCase() === params.output_token.toLowerCase()
+            );
 
-            // Build conversation data
-            const conversationData: ConversationData = {
-              intent_type: params.intent_type,
-              operation: {
-                inputs: [{
-                  token: inputTokenInfo,
-                  amount: suiClient.parseTokenAmount(params.input_amount, inputTokenInfo.decimals),
-                  amount_type: 'exact'
-                }],
-                outputs: [{
-                  token: outputTokenInfo,
-                  min_amount: params.min_output_amount ? 
-                    suiClient.parseTokenAmount(params.min_output_amount, outputTokenInfo.decimals) : 
-                    undefined,
-                  desired_amount: params.desired_output_amount ?
-                    suiClient.parseTokenAmount(params.desired_output_amount, outputTokenInfo.decimals) :
-                    undefined
-                }]
-              },
-              constraints: {
-                slippage_tolerance_bps: params.slippage_bps,
-                deadline_minutes: params.deadline_minutes,
-                ...(params.limit_price && {
-                  limit_price: {
-                    price: params.limit_price,
-                    comparison: params.limit_comparison || 'gte',
-                    quote_token: outputTokenInfo.coinType
-                  }
-                })
-              },
-              user_preferences: {
-                optimization_goal: params.optimization_goal,
-                urgency: params.deadline_minutes <= 2 ? 'high' : 'normal',
-                auto_execute: params.auto_execute,
-                require_simulation: params.require_simulation,
-                privacy_level: params.privacy_level
-              },
-              user_context: {
-                address: suiClient.normalizeSuiAddress(params.user_address),
-                balances: userBalances,
-                platform: 'web',
-                language: 'en'
-              },
-              market_context: marketData
-            };
-
-            // Generate intent
-            const result = await IGSIntentBuilder.build(conversationData);
-
-            if (result.success && result.intent) {
-              return {
-                success: true,
-                intent: result.intent,
-                intent_id: result.intent.intent_id,
-                validation_score: result.validation_score,
-                warnings: result.warnings,
-                summary: {
-                  operation: `${params.intent_type.replace('.', ' ')} ${params.input_amount} ${params.input_token} → ${params.output_token}`,
-                  deadline: `${params.deadline_minutes} minutes`,
-                  slippage: `${(params.slippage_bps / 100).toFixed(2)}%`,
-                  optimization: params.optimization_goal
-                }
-              };
-            } else {
+            if (!inputTokenInfo || !outputTokenInfo) {
               return {
                 success: false,
-                errors: result.errors,
-                warnings: result.warnings,
-                validation_score: result.validation_score
+                errors: ['Token information not found'],
+                warnings: []
               };
             }
+
+            // Parse amounts to base units
+            const inputAmountBase = suiClient.parseTokenAmount(params.input_amount, inputTokenInfo.decimals);
+
+            // Calculate min output with slippage
+            const marketData = await llamaClient.getSuiMarketData();
+            const inputPrice = params.input_token.toLowerCase() === 'sui' ? marketData.tokenPrices['sui']?.price || 2.17 : 1;
+            const outputPrice = params.output_token.toLowerCase() === 'usdc' || params.output_token.toLowerCase() === 'usdt' ? 1 : inputPrice;
+
+            const expectedOutputFloat = (parseFloat(params.input_amount) * inputPrice) / outputPrice;
+            const minOutputFloat = expectedOutputFloat * (1 - params.slippage_bps / 10000);
+            const minOutputBase = suiClient.parseTokenAmount(minOutputFloat.toFixed(outputTokenInfo.decimals), outputTokenInfo.decimals);
+
+            // Build IGS Intent using IntentBuilder from @intenus/common
+            const builder = new IntentBuilder(suiClient.normalizeSuiAddress(params.user_address));
+
+            // Configure swap
+            const intent = builder
+              .swap(
+                inputTokenInfo.coinType,
+                inputAmountBase,
+                outputTokenInfo.coinType,
+                params.slippage_bps
+              )
+              .withSlippage(params.slippage_bps)
+              .withDeadline(params.deadline_minutes * 60 * 1000)
+              .withOptimization(params.optimization_goal)
+              .build();
+
+            // Add description
+            intent.description = `Swap ${params.input_amount} ${params.input_token} to ${params.output_token}`;
+
+            return {
+              success: true,
+              intent: intent,
+              intent_id: intent.intent_id,
+              summary: {
+                operation: `${params.intent_type.replace('.', ' ')} ${params.input_amount} ${params.input_token} → ${params.output_token}`,
+                deadline: `${params.deadline_minutes} minutes`,
+                slippage: `${(params.slippage_bps / 100).toFixed(2)}%`,
+                optimization: params.optimization_goal,
+                expected_output: `~${expectedOutputFloat.toFixed(2)} ${params.output_token}`,
+                min_output: `≥${minOutputFloat.toFixed(2)} ${params.output_token}`,
+                intenus_benefits: [
+                  '20-40% better rates via solver competition',
+                  'MEV protection through batch auctions',
+                  'Optimal routing across all Sui DEXs',
+                  'Verifiable execution with cryptographic proof'
+                ]
+              },
+              next_steps: [
+                'Review the intent details',
+                'Solvers will compete to find the best execution',
+                'You\'ll see top-ranked solutions with surplus calculations',
+                'Approve and execute the best solution'
+              ]
+            };
           } catch (error) {
             return {
               success: false,
@@ -437,7 +389,7 @@ Start by understanding what the user wants to do in DeFi.`,
       })
     },
 
-    maxSteps: 5,
+    maxSteps: 10,
     temperature: 0.7
   });
 
