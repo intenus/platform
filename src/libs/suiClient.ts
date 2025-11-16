@@ -1,255 +1,184 @@
 /**
- * Sui Blockchain Client
- * Handles wallet connections, token data, and balance queries
+ * Minimal Sui Client - Wrapper around @mysten/sui SDK
+ * IMPORTANT: Use native SDK methods when possible, avoid reimplementing
  */
 
-import { SuiClient as MyStenSuiClient, getFullnodeUrl } from '@mysten/sui/client';
-import { isValidSuiAddress, normalizeStructTag, normalizeSuiAddress } from '@mysten/sui/utils';
+import { SuiClient } from '@mysten/sui/client';
+import { normalizeSuiAddress, isValidSuiAddress } from '@mysten/sui/utils';
 
-// Common Sui token addresses
-export const SUI_TOKENS = {
-  SUI: '0x2::sui::SUI',
-  USDC: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN',
-  USDT: '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN',
-  WETH: '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5::coin::COIN',
-  CETUS: '0x06864a6f921804860930db6ddbe2e16acdf8504495ea7481637a1c8b9a8fe54b::cetus::CETUS',
-  SCA: '0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6::sca::SCA',
+// Initialize Sui client
+const RPC_URL = process.env.NEXT_PUBLIC_SUI_RPC_URL || 'https://fullnode.mainnet.sui.io:443';
+
+export const sui = new SuiClient({ url: RPC_URL });
+
+// Re-export utils from SDK
+export { normalizeSuiAddress, isValidSuiAddress };
+
+/**
+ * Popular tokens on Sui (focus on swap pairs)
+ */
+export const POPULAR_TOKENS = {
+  SUI: {
+    symbol: 'SUI',
+    coinType: '0x2::sui::SUI',
+    decimals: 9,
+    name: 'Sui',
+  },
+  WALRUS: {
+    symbol: 'WALRUS',
+    coinType: '0x356a26eb9e012a68958082340d4c4116e7f55615cf27affcff209cf0ae544f59::wal::WAL',
+    decimals: 9,
+    name: 'Walrus',
+  },
+  USDC: {
+    symbol: 'USDC',
+    coinType: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
+    decimals: 6,
+    name: 'USD Coin',
+  },
+  USDT: {
+    symbol: 'USDT',
+    coinType: '0x375f70cf2ae4c00bf37117d0c85a2c71545e6ee05c4a5c7d282cd66a4504b068::usdt::USDT',
+    decimals: 6,
+    name: 'Tether USD',
+  },
+  WETH: {
+    symbol: 'WETH',
+    coinType: '0xaf8cd5edc19c4512f4259f0bee101a40d41ebed738ade5874359610ef8eeced5::coin::COIN',
+    decimals: 8,
+    name: 'Wrapped Ether',
+  },
 } as const;
 
-interface TokenInfo {
-  symbol: string;
-  coinType: string;
-  decimals: number;
-  name?: string;
+export type TokenSymbol = keyof typeof POPULAR_TOKENS;
+export type TokenInfo = typeof POPULAR_TOKENS[TokenSymbol];
+
+/**
+ * Get token info by symbol
+ */
+export function getTokenInfo(symbol: string): TokenInfo | undefined {
+  return POPULAR_TOKENS[symbol.toUpperCase() as TokenSymbol];
 }
 
-interface UserBalance {
-  symbol: string;
-  coinType: string;
-  balance: string; // raw balance in base units
+/**
+ * Get all popular tokens
+ */
+export function getPopularTokens(): TokenInfo[] {
+  return Object.values(POPULAR_TOKENS);
+}
+
+/**
+ * Parse token amount to smallest unit
+ */
+export function parseTokenAmount(amount: string, decimals: number): string {
+  const value = parseFloat(amount);
+  if (isNaN(value) || value < 0) {
+    throw new Error(`Invalid amount: ${amount}`);
+  }
+  return BigInt(Math.floor(value * Math.pow(10, decimals))).toString();
+}
+
+/**
+ * Format token amount from smallest unit
+ */
+export function formatTokenAmount(amount: string | bigint, decimals: number): string {
+  const value = typeof amount === 'string' ? BigInt(amount) : amount;
+  const divisor = BigInt(Math.pow(10, decimals));
+  const whole = value / divisor;
+  const fraction = value % divisor;
+
+  if (fraction === BigInt(0)) {
+    return whole.toString();
+  }
+
+  const fractionStr = fraction.toString().padStart(decimals, '0');
+  return `${whole}.${fractionStr}`.replace(/\.?0+$/, '');
+}
+
+/**
+ * Get user balance for a specific coin type
+ */
+export async function getBalance(address: string, coinType: string): Promise<{
+  balance: string;
   balanceFormatted: string;
+  coinType: string;
+}> {
+  if (!isValidSuiAddress(address)) {
+    throw new Error('Invalid Sui address');
+  }
+
+  const normalized = normalizeSuiAddress(address);
+  const balance = await sui.getBalance({
+    owner: normalized,
+    coinType,
+  });
+
+  const token = Object.values(POPULAR_TOKENS).find(t => t.coinType === coinType);
+  const decimals = token?.decimals || 9;
+
+  return {
+    balance: balance.totalBalance,
+    balanceFormatted: formatTokenAmount(balance.totalBalance, decimals),
+    coinType,
+  };
+}
+
+/**
+ * Get all balances for user (only popular tokens)
+ */
+export async function getAllBalances(address: string): Promise<Array<{
+  symbol: string;
+  balance: string;
+  balanceFormatted: string;
+  coinType: string;
   decimals: number;
-  valueUsd?: number;
-}
-
-class SuiClientWrapper {
-  private client: MyStenSuiClient;
-  private network: 'mainnet' | 'testnet' | 'devnet';
-
-  constructor(network: 'mainnet' | 'testnet' | 'devnet' = 'mainnet') {
-    this.network = network;
-    this.client = new MyStenSuiClient({ url: getFullnodeUrl(network) });
+}>> {
+  if (!isValidSuiAddress(address)) {
+    throw new Error('Invalid Sui address');
   }
 
-  /**
-   * Get Sui client instance
-   */
-  getClient(): MyStenSuiClient {
-    return this.client;
-  }
+  const normalized = normalizeSuiAddress(address);
+  const tokens = getPopularTokens();
 
-  /**
-   * Validate Sui address format
-   */
-  isValidSuiAddress(address: string): boolean {
-    return isValidSuiAddress(address);
-  }
-
-  /**
-   * Normalize Sui address to standard format
-   */
-  normalizeSuiAddress(address: string): string {
-    return normalizeSuiAddress(address);
-  }
-
-  /**
-   * Get popular token list on Sui
-   */
-  async getPopularTokens(): Promise<TokenInfo[]> {
-    return [
-      {
-        symbol: 'SUI',
-        coinType: SUI_TOKENS.SUI,
-        decimals: 9,
-        name: 'Sui'
-      },
-      {
-        symbol: 'USDC',
-        coinType: SUI_TOKENS.USDC,
-        decimals: 6,
-        name: 'USD Coin'
-      },
-      {
-        symbol: 'USDT',
-        coinType: SUI_TOKENS.USDT,
-        decimals: 6,
-        name: 'Tether USD'
-      },
-      {
-        symbol: 'WETH',
-        coinType: SUI_TOKENS.WETH,
-        decimals: 8,
-        name: 'Wrapped Ether'
-      },
-      {
-        symbol: 'CETUS',
-        coinType: SUI_TOKENS.CETUS,
-        decimals: 9,
-        name: 'Cetus Protocol'
-      },
-      {
-        symbol: 'SCA',
-        coinType: SUI_TOKENS.SCA,
-        decimals: 9,
-        name: 'Scallop'
-      }
-    ];
-  }
-
-  /**
-   * Get token info by coin type or symbol
-   */
-  async getTokenInfo(coinTypeOrSymbol: string): Promise<TokenInfo> {
-    const popularTokens = await this.getPopularTokens();
-
-    // Check if it's a symbol
-    const bySymbol = popularTokens.find(
-      t => t.symbol.toLowerCase() === coinTypeOrSymbol.toLowerCase()
-    );
-    if (bySymbol) return bySymbol;
-
-    // Check if it's a coin type
-    const byCoinType = popularTokens.find(
-      t => t.coinType.toLowerCase() === coinTypeOrSymbol.toLowerCase()
-    );
-    if (byCoinType) return byCoinType;
-
-    // Default to unknown token
-    return {
-      symbol: 'UNKNOWN',
-      coinType: coinTypeOrSymbol,
-      decimals: 9,
-      name: 'Unknown Token'
-    };
-  }
-
-  /**
-   * Get user's token balances
-   */
-  async getUserBalances(address: string): Promise<UserBalance[]> {
-    try {
-      const normalizedAddress = this.normalizeSuiAddress(address);
-      const balances = await this.client.getAllBalances({ owner: normalizedAddress });
-      const popularTokens = await this.getPopularTokens();
-
-      const results: UserBalance[] = [];
-
-      for (const balance of balances) {
-        const tokenInfo = popularTokens.find(t => t.coinType === balance.coinType) || {
-          symbol: 'UNKNOWN',
-          coinType: balance.coinType,
-          decimals: 9
-        };
-
-        results.push({
-          symbol: tokenInfo.symbol,
-          coinType: balance.coinType,
-          balance: balance.totalBalance,
-          balanceFormatted: this.formatTokenAmount(balance.totalBalance, tokenInfo.decimals),
-          decimals: tokenInfo.decimals
+  const balances = await Promise.all(
+    tokens.map(async (token) => {
+      try {
+        const balance = await sui.getBalance({
+          owner: normalized,
+          coinType: token.coinType,
         });
+
+        return {
+          symbol: token.symbol,
+          balance: balance.totalBalance,
+          balanceFormatted: formatTokenAmount(balance.totalBalance, token.decimals),
+          coinType: token.coinType,
+          decimals: token.decimals,
+        };
+      } catch (error) {
+        // Return 0 balance on error
+        return {
+          symbol: token.symbol,
+          balance: '0',
+          balanceFormatted: '0',
+          coinType: token.coinType,
+          decimals: token.decimals,
+        };
       }
+    })
+  );
 
-      return results;
-    } catch (error) {
-      console.error('Error fetching user balances:', error);
-      throw new Error(`Failed to fetch balances: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  /**
-   * Check if user has sufficient balance
-   */
-  async checkSufficientBalance(
-    address: string,
-    coinType: string,
-    requiredAmount: string
-  ): Promise<{ sufficient: boolean; available: string }> {
-    try {
-      const normalizedAddress = this.normalizeSuiAddress(address);
-      const balance = await this.client.getBalance({
-        owner: normalizedAddress,
-        coinType
-      });
-
-      const available = BigInt(balance.totalBalance);
-      const required = BigInt(requiredAmount);
-
-      return {
-        sufficient: available >= required,
-        available: balance.totalBalance
-      };
-    } catch (error) {
-      console.error('Error checking balance:', error);
-      return {
-        sufficient: false,
-        available: '0'
-      };
-    }
-  }
-
-  /**
-   * Format token amount from base units to human-readable
-   */
-  formatTokenAmount(amount: string, decimals: number): string {
-    const value = BigInt(amount);
-    const divisor = BigInt(10 ** decimals);
-    const integerPart = value / divisor;
-    const fractionalPart = value % divisor;
-
-    if (fractionalPart === 0n) {
-      return integerPart.toString();
-    }
-
-    const fractionalStr = fractionalPart.toString().padStart(decimals, '0');
-    const trimmed = fractionalStr.replace(/0+$/, '');
-
-    return `${integerPart}.${trimmed}`;
-  }
-
-  /**
-   * Parse token amount from human-readable to base units
-   */
-  parseTokenAmount(amount: string, decimals: number): string {
-    const [integerPart, fractionalPart = ''] = amount.split('.');
-    const paddedFractional = fractionalPart.padEnd(decimals, '0').slice(0, decimals);
-    const fullAmount = integerPart + paddedFractional;
-    return BigInt(fullAmount).toString();
-  }
-
-  /**
-   * Get current gas price
-   */
-  async getGasPrice(): Promise<string> {
-    try {
-      const gasPrice = await this.client.getReferenceGasPrice();
-      return gasPrice.toString();
-    } catch (error) {
-      console.error('Error fetching gas price:', error);
-      return '1000'; // Default gas price
-    }
-  }
-
-  /**
-   * Get network info
-   */
-  getNetwork(): string {
-    return this.network;
-  }
+  return balances.filter(b => parseFloat(b.balanceFormatted) > 0);
 }
 
-// Export singleton instance
-export const suiClient = new SuiClientWrapper('mainnet');
-
-// Export types
-export type { TokenInfo, UserBalance };
+/**
+ * Check if user has sufficient balance
+ */
+export async function hasSufficientBalance(
+  address: string,
+  coinType: string,
+  requiredAmount: string
+): Promise<boolean> {
+  const { balance } = await getBalance(address, coinType);
+  return BigInt(balance) >= BigInt(requiredAmount);
+}
