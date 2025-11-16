@@ -3,19 +3,25 @@
  * Fetch prices, protocols, and market information
  */
 
-import { tool } from 'ai';
-import { z } from 'zod';
 import { llama } from '@/libs/llamaClient';
 
 /**
  * Get current market prices for tokens
  */
-export const getMarketPriceTool = tool({
+export const getMarketPriceTool = {
   description: 'Get current market prices for Sui tokens (SUI, USDC, USDT, WETH)',
-  parameters: z.object({
-    tokens: z.array(z.string()).describe('Token symbols to get prices for, e.g. ["SUI", "USDC"]'),
-  }),
-  execute: async ({ tokens }) => {
+  parameters: {
+    type: 'object' as const,
+    properties: {
+      tokens: {
+        type: 'array' as const,
+        items: { type: 'string' as const },
+        description: 'Token symbols to get prices for, e.g. ["SUI", "USDC"]',
+      },
+    },
+    required: ['tokens'],
+  },
+  execute: async ({ tokens }: { tokens: string[] }) => {
     try {
       // Map symbols to CoinGecko IDs
       const tokenMap: Record<string, string> = {
@@ -60,18 +66,29 @@ export const getMarketPriceTool = tool({
       };
     }
   },
-});
+};
 
 /**
  * Get DEX protocol information
  */
-export const getProtocolInfoTool = tool({
+export const getProtocolInfoTool = {
   description: 'Get information about Sui DEX protocols for swap routing',
-  parameters: z.object({
-    search: z.string().optional().describe('Protocol name to search for'),
-    limit: z.number().default(3).describe('Max number of protocols to return'),
-  }),
-  execute: async ({ search, limit }) => {
+  parameters: {
+    type: 'object' as const,
+    properties: {
+      search: {
+        type: 'string' as const,
+        description: 'Protocol name to search for',
+      },
+      limit: {
+        type: 'number' as const,
+        description: 'Max number of protocols to return',
+        default: 3,
+      },
+    },
+    required: [] as string[],
+  },
+  execute: async ({ search, limit = 3 }: { search?: string; limit?: number }) => {
     try {
       let protocols;
 
@@ -102,14 +119,18 @@ export const getProtocolInfoTool = tool({
       };
     }
   },
-});
+};
 
 /**
  * Get market overview for context
  */
-export const getMarketOverviewTool = tool({
+export const getMarketOverviewTool = {
   description: 'Get Sui market overview including TVL, volume, and top DEXs',
-  parameters: z.object({}),
+  parameters: {
+    type: 'object' as const,
+    properties: {},
+    required: [] as string[],
+  },
   execute: async () => {
     try {
       const marketData = await llama.getSuiMarketData();
@@ -136,4 +157,4 @@ export const getMarketOverviewTool = tool({
       };
     }
   },
-});
+};
