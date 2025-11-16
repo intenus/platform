@@ -1,0 +1,1 @@
+pnpm dlx @chakra-ui/cli typegen src/theme/index.ts --outdir src/theme --strict
