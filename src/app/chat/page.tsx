@@ -51,12 +51,12 @@ export default function ChatPage() {
               <Card.Root>
                 <Card.Body>
                   <Text color="fg.muted">
-                    👋 Hi! I'm your Sui swap assistant. Try saying:
+                    👋 Hi! I&apos;m your Sui swap assistant. Try saying:
                   </Text>
                   <VStack gap={2} mt={4} align="start">
-                    <Text fontSize="sm" color="fg.muted">• "Swap 100 SUI to USDC"</Text>
-                    <Text fontSize="sm" color="fg.muted">• "Create a limit order to sell 50 SUI at $3"</Text>
-                    <Text fontSize="sm" color="fg.muted">• "What's the current SUI price?"</Text>
+                    <Text fontSize="sm" color="fg.muted">• Swap 100 SUI to USDC</Text>
+                    <Text fontSize="sm" color="fg.muted">• Create a limit order to sell 50 SUI at $3</Text>
+                    <Text fontSize="sm" color="fg.muted">• What&apos;s the current SUI price?</Text>
                   </VStack>
                 </Card.Body>
               </Card.Root>
