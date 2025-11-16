@@ -5,7 +5,6 @@
 
 import { tool } from 'ai';
 import { z } from 'zod';
-import type { Tool } from 'ai';
 import { IntentBuilder } from '@intenus/common';
 import { getTokenInfo, parseTokenAmount, getAllBalances, isValidSuiAddress, normalizeSuiAddress } from '@/libs/suiClient';
 
