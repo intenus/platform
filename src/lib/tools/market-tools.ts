@@ -6,34 +6,26 @@
 
  */
 
-import { llama } from "@/libs/llamaClient";
+import { llama } from '@/libs/llamaClient';
 
 /**
 
  * Get current market prices for tokens
 
  */
-
 export const getMarketPriceTool = {
-  description:
-    "Get current market prices for Sui tokens (SUI, USDC, USDT, WETH)",
-
+  description: 'Get current market prices for Sui tokens (SUI, USDC, USDT, WETH)',
   parameters: {
-    type: "object" as const,
-
+    type: 'object' as const,
     properties: {
       tokens: {
-        type: "array" as const,
-
-        items: { type: "string" as const },
-
+        type: 'array' as const,
+        items: { type: 'string' as const },
         description: 'Token symbols to get prices for, e.g. ["SUI", "USDC"]',
       },
     },
-
-    required: ["tokens"],
+    required: ['tokens'],
   },
-
   execute: async ({ tokens }: { tokens: string[] }) => {
     try {
       // Map symbols to CoinGecko IDs
@@ -99,39 +91,24 @@ export const getMarketPriceTool = {
  * Get DEX protocol information
 
  */
-
 export const getProtocolInfoTool = {
-  description: "Get information about Sui DEX protocols for swap routing",
-
+  description: 'Get information about Sui DEX protocols for swap routing',
   parameters: {
-    type: "object" as const,
-
+    type: 'object' as const,
     properties: {
       search: {
-        type: "string" as const,
-
-        description: "Protocol name to search for",
+        type: 'string' as const,
+        description: 'Protocol name to search for',
       },
-
       limit: {
-        type: "number" as const,
-
-        description: "Max number of protocols to return",
-
+        type: 'number' as const,
+        description: 'Max number of protocols to return',
         default: 3,
       },
     },
-
     required: [] as string[],
   },
-
-  execute: async ({
-    search,
-    limit = 3,
-  }: {
-    search?: string;
-    limit?: number;
-  }) => {
+  execute: async ({ search, limit = 3 }: { search?: string; limit?: number }) => {
     try {
       let protocols;
 
@@ -178,18 +155,13 @@ export const getProtocolInfoTool = {
  * Get market overview for context
 
  */
-
 export const getMarketOverviewTool = {
-  description: "Get Sui market overview including TVL, volume, and top DEXs",
-
+  description: 'Get Sui market overview including TVL, volume, and top DEXs',
   parameters: {
-    type: "object" as const,
-
+    type: 'object' as const,
     properties: {},
-
     required: [] as string[],
   },
-
   execute: async () => {
     try {
       const marketData = await llama.getSuiMarketData();
