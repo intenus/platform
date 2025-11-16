@@ -175,8 +175,8 @@ class LlamaClient {
     const [chainData, protocols, volumeData, feesData] = await Promise.all([
       this.getSuiChainData(),
       this.getTopSuiProtocols(10),
-      this.fetchWithCache('/overview/dexs/Sui?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true'),
-      this.fetchWithCache('/overview/fees/Sui?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true')
+      this.fetchWithCache('/overview/dexs/Sui'),
+      this.fetchWithCache('/overview/fees/Sui')
     ]);
 
     const totalTvl = protocols.reduce((sum, p) => sum + (p.currentChainTvls?.Sui || 0), 0);
@@ -188,12 +188,12 @@ class LlamaClient {
       topProtocols: protocols,
       tokenPrices: await this.getTokenPrices(['sui', 'usd-coin', 'tether']),
       volumeData: {
-        daily: volumeData?.totalDataChart?.[volumeData.totalDataChart.length - 1]?.[1] || 0,
-        weekly: volumeData?.totalDataChart?.slice(-7).reduce((sum: number, day: [number, number]) => sum + (day[1] || 0), 0) || 0
+        daily: (volumeData as any)?.totalDataChart?.[(volumeData as any).totalDataChart?.length - 1]?.[1] || 0,
+        weekly: (volumeData as any)?.totalDataChart?.slice(-7).reduce((sum: number, day: [number, number]) => sum + (day[1] || 0), 0) || 0
       },
       feesData: {
-        daily: feesData?.totalDataChart?.[feesData.totalDataChart.length - 1]?.[1] || 0,
-        revenue: feesData?.totalDataChart?.[feesData.totalDataChart.length - 1]?.[1] * 0.3 || 0 // Estimate 30% revenue
+        daily: (feesData as any)?.totalDataChart?.[(feesData as any).totalDataChart?.length - 1]?.[1] || 0,
+        revenue: ((feesData as any)?.totalDataChart?.[(feesData as any).totalDataChart?.length - 1]?.[1] || 0) * 0.3 // Estimate 30% revenue
       }
     };
   }
@@ -206,8 +206,8 @@ class LlamaClient {
       const prices = await this.fetchWithCache(`/prices/current/${tokenIds.join(',')}`);
       
       const result: Record<string, SuiTokenPrice> = {};
-      
-      Object.entries(prices.coins || {}).forEach(([id, data]: [string, any]) => {
+
+      Object.entries((prices as any)?.coins || {}).forEach(([id, data]: [string, any]) => {
         result[id] = {
           symbol: data.symbol?.toUpperCase() || id,
           price: data.price || 0,
@@ -229,7 +229,7 @@ class LlamaClient {
   async getSuiYieldPools(): Promise<any[]> {
     try {
       const yields = await this.fetchWithCache('/yields?chain=Sui');
-      return yields.data || [];
+      return (yields as any)?.data || [];
     } catch (error) {
       console.warn('Failed to fetch yield data:', error);
       return [];
@@ -256,10 +256,10 @@ class LlamaClient {
   async getSuiTvlHistory(days: number = 30): Promise<Array<{ date: string; tvl: number }>> {
     try {
       const data = await this.fetchWithCache(`/v2/historicalChainTvl/Sui`);
-      return data.slice(-days).map((item: any) => ({
+      return (data as any)?.slice(-days).map((item: any) => ({
         date: new Date(item.date * 1000).toISOString().split('T')[0],
         tvl: item.tvl
-      }));
+      })) || [];
     } catch (error) {
       console.warn('Failed to fetch TVL history:', error);
       return [];
