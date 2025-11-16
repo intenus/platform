@@ -6,9 +6,8 @@
  */
 
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
 import { Box, Container, Flex, Heading, Text, VStack, Input, Button, Card } from '@chakra-ui/react';
-import { useState, useRef, useEffect, FormEvent, useMemo } from 'react';
+import { useState, useRef, useEffect, FormEvent } from 'react';
 import { FiSend, FiLoader } from 'react-icons/fi';
 
 // Helper function to extract text from message parts
@@ -23,10 +22,8 @@ function getMessageText(message: any): string {
 export default function ChatPage() {
   const [input, setInput] = useState('');
 
-  const transport = useMemo(() => new DefaultChatTransport({ api: '/api/chat' }), []);
-
   const { messages, status, sendMessage } = useChat({
-    transport,
+    id: 'intenus-chat',
     messages: [
       {
         id: 'welcome',
