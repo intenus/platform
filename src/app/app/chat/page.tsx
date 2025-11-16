@@ -12,7 +12,7 @@ import { FiSend, FiLoader } from 'react-icons/fi';
 
 export default function ChatPage() {
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: '/api',
+    api: '/api/chat',
     initialMessages: [
       {
         id: 'welcome',
