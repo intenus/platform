@@ -4,7 +4,7 @@
  */
 
 import { openai } from '@ai-sdk/openai';
-import { streamText, convertToModelMessages } from 'ai';
+import { streamText, convertToModelMessages, UIMessage } from 'ai';
 import { SYSTEM_PROMPT } from '@/lib/context/system-prompt';
 import { LLAMA_API_CONTEXT } from '@/lib/context/llama-context';
 import { COINGECKO_API_CONTEXT } from '@/lib/context/coingecko-context';
@@ -21,7 +21,7 @@ import { submitIntentTool } from '@/lib/tools/server-tools';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
+  const { messages }: { messages: UIMessage[] } = await req.json();
 
   // Convert UIMessage[] to ModelMessage[]
   const modelMessages = convertToModelMessages(messages);
@@ -59,5 +59,5 @@ ${COINGECKO_API_CONTEXT}
     temperature: 0.7,
   });
 
-  return result.toTextStreamResponse();
+  return result.toUIMessageStreamResponse();
 }

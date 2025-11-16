@@ -12,7 +12,14 @@ export default function ChatPage() {
     onError: (error) => {
       console.error('Chat error:', error);
     },
+    onFinish: (message) => {
+      console.log('Message finished:', message);
+    }
   });
+
+  // Debug logging
+  console.log('Current messages:', messages);
+  console.log('Current status:', status);
 
   const isLoading = status === 'submitted' || status === 'streaming';
 
@@ -73,8 +80,15 @@ export default function ChatPage() {
                   color={message.role === 'user' ? 'white' : 'inherit'}
                 >
                   <Card.Body>
-                    {/* Message content - only show text parts */}
-                    {message.parts.map((part, idx) => {
+                    {/* Debug: Show message structure */}
+                    {process.env.NODE_ENV === 'development' && (
+                      <Text fontSize="xs" color="orange.300" mb={2}>
+                        Debug - Message: {JSON.stringify({ role: message.role, partsLength: message.parts?.length, parts: message.parts?.map(p => p.type) })}
+                      </Text>
+                    )}
+                    
+                    {/* Message content */}
+                    {message.parts?.map((part, idx) => {
                       if (part.type === 'text') {
                         return (
                           <Text key={idx} fontSize="sm" whiteSpace="pre-wrap">
@@ -82,8 +96,23 @@ export default function ChatPage() {
                           </Text>
                         );
                       }
-                      return null;
-                    })}
+                      
+                      // Show other part types for debugging
+                      return (
+                        <Box key={idx} p={2} bg="orange.100" borderRadius="md" mt={2}>
+                          <Text fontSize="xs" fontWeight="bold">
+                            Part type: {part.type}
+                          </Text>
+                          <Text fontSize="xs" color="gray.600">
+                            {JSON.stringify(part, null, 2)}
+                          </Text>
+                        </Box>
+                      );
+                    }) || (
+                      <Text fontSize="sm" color="red.400">
+                        No parts in message
+                      </Text>
+                    )}
                   </Card.Body>
                 </Card.Root>
               </Box>

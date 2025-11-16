@@ -4,191 +4,237 @@
  * Focus: Swap/DEX endpoints for Sui chain
  */
 
-export const LLAMA_API_CONTEXT = `DefiLlama API – Complete LLM Integration Guide
-=====================================================
+export const LLAMA_API_CONTEXT = `# DeFiLlama API Complete LLM Context for DEX Applications
 
 ## Overview
+This document provides comprehensive context for LLMs to interact with DeFiLlama APIs specifically for DEX (Decentralized Exchange) applications requiring price, yield, and chain data.
 
-This document provides comprehensive guidance for LLMs to interact with ALL DefiLlama APIs.
-Includes API-Plan-only endpoints (marked with 🔒) and free endpoints, with full parameters and responses.
+## Base URLs and Authentication
 
-## Base URLs
+### Main API Endpoints
+- **Primary API**: \`https://api.llama.fi\`
+- **Coins API**: \`https://coins.llama.fi\` 
+- **Stablecoins API**: \`https://stablecoins.llama.fi\`
+- **Yields API**: \`https://yields.llama.fi\`
+- **Free endpoints**: No authentication required
 
-**Main Pro API** (Most endpoints)
-- Base URL: \`https://pro-api.llama.fi\`
-- Used for: TVL data, protocols, prices, yields, user metrics, fees
+## Core Endpoints for DEX Applications
 
-**Bridge API**
-- Base URL: \`https://bridges.llama.fi\`
-- Used for: Cross-chain bridge data and transactions
+### 1. TOKEN PRICES (Essential for DEX)
 
-## Authentication
-
-**For Pro Endpoints (🔒) on pro-api.llama.fi:**
-API key is inserted between base URL and endpoint:
+#### Get Current Token Prices
 \`\`\`
-https://pro-api.llama.fi/<YOUR_API_KEY>/<ENDPOINT>
+GET https://coins.llama.fi/prices/current/{coins}
+\`\`\`
+**Purpose**: Retrieve real-time token prices for DEX trading pairs
+**Parameters**:
+- \`coins\` (path, required): Comma-separated tokens defined as \`{chain}:{address}\`
+- \`searchWidth\` (query, optional): Time range to find price data, defaults to 6 hours
+
+**Token Format Examples**:
+- \`ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1\`
+- \`bsc:0x762539b45a1dcce3d36d080f74d1aed37844b878\`  
+- \`coingecko:ethereum\` (using CoinGecko ID)
+- \`arbitrum:0x4277f8f2c384827b5273592ff7cebd9f2c1ac258\`
+
+**Response Format**:
+\`\`\`json
+{
+  "coins": {
+    "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1": {
+      "decimals": 8,
+      "price": 0.022053735051098835,
+      "symbol": "cDAI",
+      "timestamp": 1648680149,
+      "confidence": 0.99
+    }
+  }
+}
 \`\`\`
 
-**For Free Endpoints and Other Base URLs:**
-No authentication required - use endpoints directly:
+#### Get Historical Token Prices
 \`\`\`
-https://bridges.llama.fi/<ENDPOINT>
+GET https://coins.llama.fi/prices/historical/{timestamp}/{coins}
+\`\`\`
+**Purpose**: Retrieve token prices at specific historical timestamp
+**Parameters**:
+- \`timestamp\` (path, required): UNIX timestamp
+- \`coins\` (path, required): Comma-separated token list
+- \`searchWidth\` (query, optional): Time range to find price data
+
+#### Get Token Price Charts
+\`\`\`
+GET https://coins.llama.fi/chart/{coins}
+\`\`\`
+**Purpose**: Get token prices at regular intervals for charts
+**Parameters**:
+- \`coins\` (path, required): Comma-separated tokens
+- \`start\` (query, optional): Unix timestamp of earliest data point
+- \`end\` (query, optional): Unix timestamp of latest data point
+- \`span\` (query, optional): Number of data points returned
+- \`period\` (query, optional): Duration between data points (default 24h)
+- \`searchWidth\` (query, optional): Time range to find price data
+
+**Response Format**:
+\`\`\`json
+{
+  "coins": {
+    "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1": {
+      "decimals": 8,
+      "confidence": 0.99,
+      "prices": [
+        {
+          "timestamp": 1666790570,
+          "price": 0.984519
+        }
+      ],
+      "symbol": "HUSD"
+    }
+  }
+}
 \`\`\`
 
-**Examples:**
-\`\`\`bash
-# Pro endpoints (requires API key in URL)
-GET https://pro-api.llama.fi/abc123key/yields/pools
+#### Get Price Percentage Changes
+\`\`\`
+GET https://coins.llama.fi/percentage/{coins}
+\`\`\`
+**Purpose**: Get percentage change in price over time
+**Parameters**:
+- \`coins\` (path, required): Comma-separated tokens
+- \`timestamp\` (query, optional): Timestamp of data point (defaults to now)
+- \`lookForward\` (query, optional): Look forward from timestamp (default false)
+- \`period\` (query, optional): Duration for comparison (default 24h)
 
-# Bridge endpoints (no key needed)
-GET https://bridges.llama.fi/bridges
+### 2. DEX VOLUME DATA
+
+#### DEX Overview
+\`\`\`
+GET https://api.llama.fi/overview/dexs
+\`\`\`
+**Purpose**: List all DEXs with volume summaries and historical data
+**Parameters**:
+- \`excludeTotalDataChart\` (query, optional): Exclude aggregated chart
+- \`excludeTotalDataChartBreakdown\` (query, optional): Exclude breakdown chart
+
+**Response Format**:
+\`\`\`json
+{
+  "protocols": [
+    {
+      "name": "Uniswap",
+      "displayName": "Uniswap V3", 
+      "total24h": 1500000000,
+      "total7d": 10000000000,
+      "change_1d": 5.2,
+      "change_7d": -2.1,
+      "chains": ["Ethereum", "Polygon"]
+    }
+  ],
+  "totalDataChart": [
+    [1640995200, 2500000000]
+  ],
+  "allChains": ["Ethereum", "BSC", "Polygon"]
+}
 \`\`\`
 
-===============================================================================
-SECTION 1: TVL & PROTOCOL DATA
-===============================================================================
+#### DEX Data by Chain
+\`\`\`
+GET https://api.llama.fi/overview/dexs/{chain}
+\`\`\`
+**Purpose**: Get DEX volume data filtered by specific chain
 
-## Core TVL Endpoints
+#### DEX Protocol Summary
+\`\`\`
+GET https://api.llama.fi/summary/dexs/{protocol}
+\`\`\`
+**Purpose**: Get detailed volume data for specific DEX protocol
 
-1. **GET /api/protocols**
-   Base: \`https://pro-api.llama.fi\`
-   Purpose: List all protocols with current TVL
-   Parameters: None
-   Response:
-   \`\`\`json
-   [{
-     "id": "2269",
-     "name": "Aave",
-     "symbol": "AAVE",
-     "category": "Lending",
-     "chains": ["Ethereum", "Polygon"],
-     "tvl": 5200000000,
-     "chainTvls": {"Ethereum": 3200000000},
-     "change_1h": 0.5,
-     "change_1d": 2.3,
-     "change_7d": -1.2,
-     "mcap": 1500000000
-   }]
-   \`\`\`
+### 3. YIELD FARMING DATA
 
-2. **GET /api/protocol/{protocol}**
-   Base: \`https://pro-api.llama.fi\`
-   Purpose: Detailed protocol data including historical TVL
-   Parameters:
-     - protocol (path, required): Protocol slug (e.g., "aave", "uniswap")
-   Response:
-   \`\`\`json
-   {
-     "id": "2269",
-     "name": "Aave",
-     "symbol": "AAVE",
-     "category": "Lending",
-     "chains": ["Ethereum", "Polygon"],
-     "description": "Decentralized lending protocol",
-     "logo": "https://...",
-     "url": "https://aave.com",
-     "twitter": "AaveAave",
-     "chainTvls": {
-       "Ethereum": {"tvl": [{"date": 1640995200, "totalLiquidityUSD": 3200000000}]},
-       "Polygon": {"tvl": [{"date": 1640995200, "totalLiquidityUSD": 2000000000}]}
-     },
-     "tvl": [{"date": 1640995200, "totalLiquidityUSD": 5200000000}],
-     "currentChainTvls": {"Ethereum": 3200000000},
-     "mcap": 1500000000,
-     "raises": [{"date": "2020-10-01", "amount": 25000000}],
-     "metrics": {
-       "fees": {"24h": 234567, "7d": 1645234},
-       "revenue": {"24h": 123456, "7d": 864192}
-     }
-   }
-   \`\`\`
+#### All Yield Pools
+\`\`\`
+GET https://yields.llama.fi/pools
+\`\`\`
+**Purpose**: Retrieve latest data for all yield farming pools
+**Response Format**:
+\`\`\`json
+{
+  "status": "success",
+  "data": [
+    {
+      "pool": "747c1d2a-c668-4682-b9f9-296708a3dd90",
+      "chain": "Ethereum",
+      "project": "Aave",
+      "symbol": "USDC",
+      "tvlUsd": 1500000000,
+      "apy": 5.2,
+      "apyBase": 3.1,
+      "apyReward": 2.1,
+      "rewardTokens": ["COMP", "AAVE"],
+      "underlyingTokens": ["USDC"],
+      "poolMeta": "Lending pool"
+    }
+  ]
+}
+\`\`\`
 
-3. **GET /api/tvl/{protocol}**
-   Base: \`https://pro-api.llama.fi\`
-   Purpose: Simple endpoint returning only current TVL number
-   Parameters:
-     - protocol (path, required): Protocol slug
-   Response: \`4962012809.795062\`
+## Token Address Formats
 
-4. 🔒 **GET /api/tokenProtocols/{symbol}**
-   Base: \`https://pro-api.llama.fi\`
-   Purpose: Shows which protocols hold a specific token
-   Parameters:
-     - symbol (path, required): Token symbol (e.g., "usdt", "dai")
-   Response:
-   \`\`\`json
-   [{
-     "name": "Aave",
-     "category": "Lending",
-     "amountUsd": {
-       "coingecko:tether": 1234567.89,
-       "coingecko:usdt-avalanche": 98765.43
-     }
-   }]
-   \`\`\`
+### Supported Chains and Formats
+- **Ethereum**: \`ethereum:0x{address}\`
+- **BSC**: \`bsc:0x{address}\` 
+- **Polygon**: \`polygon:0x{address}\`
+- **Arbitrum**: \`arbitrum:0x{address}\`
+- **Avalanche**: \`avax:0x{address}\`
+- **Fantom**: \`fantom:0x{address}\`
+- **Optimism**: \`optimism:0x{address}\`
+- **CoinGecko ID**: \`coingecko:{coin_id}\`
 
-5. 🔒 **GET /api/inflows/{protocol}/{timestamp}**
-   Base: \`https://pro-api.llama.fi\`
-   Purpose: Daily capital flows for a protocol
-   Parameters:
-     - protocol (path, required): Protocol slug
-     - timestamp (path, required): Unix timestamp at 00:00 UTC
-   Response:
-   \`\`\`json
-   {
-     "outflows": -160563462.23,
-     "inflows": 145234567.89,
-     "oldTokens": {
-       "date": 1700005031,
-       "tvl": {"USDC": 27302168.77, "WETH": 138751.92}
-     },
-     "currentTokens": {
-       "date": 1752771743,
-       "tvl": {"USDC": 23936602.85, "WETH": 125432.11}
-     }
-   }
-   \`\`\`
+### Common Token Examples
+- **USDC (Ethereum)**: \`ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48\`
+- **USDT (Ethereum)**: \`ethereum:0xdAC17F958D2ee523a2206206994597C13D831ec7\`  
+- **WETH (Ethereum)**: \`ethereum:0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2\`
+- **USDC (Polygon)**: \`polygon:0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174\`
+- **Bitcoin**: \`coingecko:bitcoin\`
+- **Ethereum**: \`coingecko:ethereum\`
+- **SUI**: \`coingecko:sui\`
 
-## Chain TVL Data
+## Rate Limits and Best Practices
 
-6. **GET /api/v2/chains**
-   Base: \`https://pro-api.llama.fi\`
-   Purpose: Current TVL of all chains
-   Parameters: None
-   Response:
-   \`\`\`json
-   [{
-     "gecko_id": "ethereum",
-     "tvl": 50000000000,
-     "tokenSymbol": "ETH",
-     "cmcId": "1027",
-     "name": "Ethereum",
-     "chainId": 1
-   }]
-   \`\`\`
+### Rate Limits
+- Free tier: 300 requests per 5 minutes
+- No API key required for public endpoints
 
-7. **GET /api/v2/historicalChainTvl**
-   Base: \`https://pro-api.llama.fi\`
-   Purpose: Historical TVL for all chains
-   Parameters: None
-   Response:
-   \`\`\`json
-   [{
-     "date": 1640995200,
-     "tvl": {"Ethereum": 150000000000, "BSC": 20000000000}
-   }]
-   \`\`\`
+### Best Practices
+1. **Batch requests**: Combine multiple tokens in single price requests
+2. **Cache frequently used data**: Store chain lists, protocol metadata
+3. **Handle errors gracefully**: Implement retry logic for failed requests
+4. **Validate inputs**: Check token address formats before API calls
+5. **Use appropriate endpoints**: Choose most specific endpoint for your needs
 
-8. **GET /api/v2/historicalChainTvl/{chain}**
-   Base: \`https://pro-api.llama.fi\`
-   Purpose: Historical TVL for specific chain
-   Parameters:
-     - chain (path, required): Chain name (e.g., "Ethereum")
-   Response:
-   \`\`\`json
-   [{
-     "date": 1640995200,
-     "tvl": 150000000000
-   }]
-   \`\`\``;
+## Integration Examples
+
+### JavaScript/Node.js
+\`\`\`javascript
+// Get current SUI price
+const response = await fetch('https://coins.llama.fi/prices/current/coingecko:sui');
+const data = await response.json();
+const suiPrice = data.coins['coingecko:sui'].price;
+
+// Get DEX volume overview
+const dexResponse = await fetch('https://api.llama.fi/overview/dexs');
+const dexData = await dexResponse.json();
+
+// Get multiple token prices
+const tokens = 'ethereum:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48,coingecko:ethereum';
+const pricesResponse = await fetch(\`https://coins.llama.fi/prices/current/\${tokens}\`);
+\`\`\`
+
+### Data Freshness
+- **Token Prices**: Updated every 1-2 minutes
+- **TVL Data**: Updated hourly
+- **Volume Data**: Updated continuously  
+- **Yield Data**: Updated hourly
+- **Chain Data**: Updated hourly
+
+This comprehensive context provides LLMs with all necessary information to effectively interact with DeFiLlama APIs for DEX applications, covering price data, volume metrics, yield farming, and chain analytics.`;
