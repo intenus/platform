@@ -3,8 +3,6 @@
  * Validate parameters and build IGS Intents using @intenus/common
  */
 
-import { tool } from 'ai';
-import { z } from 'zod';
 import { IntentBuilder } from '@intenus/common';
 import { getTokenInfo, parseTokenAmount, getAllBalances, isValidSuiAddress, normalizeSuiAddress } from '@/libs/suiClient';
 import { llama } from '@/libs/llamaClient';
@@ -12,12 +10,19 @@ import { llama } from '@/libs/llamaClient';
 /**
  * Get user balance
  */
-export const getUserBalanceTool = tool({
+export const getUserBalanceTool = {
   description: 'Check user token balances on Sui',
-  parameters: z.object({
-    user_address: z.string().describe('User Sui wallet address'),
-  }),
-  execute: async ({ user_address }) => {
+  parameters: {
+    type: 'object' as const,
+    properties: {
+      user_address: {
+        type: 'string' as const,
+        description: 'User Sui wallet address',
+      },
+    },
+    required: ['user_address'],
+  },
+  execute: async ({ user_address }: { user_address: string }) => {
     try {
       if (!isValidSuiAddress(user_address)) {
         return {
@@ -45,21 +50,47 @@ export const getUserBalanceTool = tool({
       };
     }
   },
-});
+};
 
 /**
  * Validate swap parameters before building intent
  */
-export const validateSwapParamsTool = tool({
+export const validateSwapParamsTool = {
   description: 'Validate swap parameters including tokens, amounts, and user balance',
-  parameters: z.object({
-    user_address: z.string().describe('User wallet address'),
-    input_token: z.string().describe('Input token symbol (e.g. SUI)'),
-    input_amount: z.string().describe('Input amount (human-readable, e.g. "100")'),
-    output_token: z.string().describe('Output token symbol (e.g. USDC)'),
-    slippage_bps: z.number().optional().default(50).describe('Slippage tolerance in basis points (default 50 = 0.5%)'),
-  }),
-  execute: async ({ user_address, input_token, input_amount, output_token, slippage_bps }) => {
+  parameters: {
+    type: 'object' as const,
+    properties: {
+      user_address: {
+        type: 'string' as const,
+        description: 'User wallet address',
+      },
+      input_token: {
+        type: 'string' as const,
+        description: 'Input token symbol (e.g. SUI)',
+      },
+      input_amount: {
+        type: 'string' as const,
+        description: 'Input amount (human-readable, e.g. "100")',
+      },
+      output_token: {
+        type: 'string' as const,
+        description: 'Output token symbol (e.g. USDC)',
+      },
+      slippage_bps: {
+        type: 'number' as const,
+        description: 'Slippage tolerance in basis points (default 50 = 0.5%)',
+        default: 50,
+      },
+    },
+    required: ['user_address', 'input_token', 'input_amount', 'output_token'],
+  },
+  execute: async ({ user_address, input_token, input_amount, output_token, slippage_bps = 50 }: {
+    user_address: string;
+    input_token: string;
+    input_amount: string;
+    output_token: string;
+    slippage_bps?: number;
+  }) => {
     try {
       const errors: string[] = [];
       const warnings: string[] = [];
@@ -142,22 +173,53 @@ export const validateSwapParamsTool = tool({
       };
     }
   },
-});
+};
 
 /**
  * Build spot swap intent using IntentBuilder
  */
-export const buildSwapIntentTool = tool({
+export const buildSwapIntentTool = {
   description: 'Generate IGS Intent for spot swap (exact input)',
-  parameters: z.object({
-    user_address: z.string().describe('User wallet address'),
-    input_token: z.string().describe('Input token symbol'),
-    input_amount: z.string().describe('Input amount'),
-    output_token: z.string().describe('Output token symbol'),
-    slippage_bps: z.number().default(50).describe('Slippage in basis points'),
-    deadline_minutes: z.number().default(5).describe('Deadline in minutes'),
-  }),
-  execute: async ({ user_address, input_token, input_amount, output_token, slippage_bps, deadline_minutes }) => {
+  parameters: {
+    type: 'object' as const,
+    properties: {
+      user_address: {
+        type: 'string' as const,
+        description: 'User wallet address',
+      },
+      input_token: {
+        type: 'string' as const,
+        description: 'Input token symbol',
+      },
+      input_amount: {
+        type: 'string' as const,
+        description: 'Input amount',
+      },
+      output_token: {
+        type: 'string' as const,
+        description: 'Output token symbol',
+      },
+      slippage_bps: {
+        type: 'number' as const,
+        description: 'Slippage in basis points',
+        default: 50,
+      },
+      deadline_minutes: {
+        type: 'number' as const,
+        description: 'Deadline in minutes',
+        default: 5,
+      },
+    },
+    required: ['user_address', 'input_token', 'input_amount', 'output_token'],
+  },
+  execute: async ({ user_address, input_token, input_amount, output_token, slippage_bps = 50, deadline_minutes = 5 }: {
+    user_address: string;
+    input_token: string;
+    input_amount: string;
+    output_token: string;
+    slippage_bps?: number;
+    deadline_minutes?: number;
+  }) => {
     try {
       // Validate address
       if (!isValidSuiAddress(user_address)) {
@@ -203,22 +265,52 @@ export const buildSwapIntentTool = tool({
       };
     }
   },
-});
+};
 
 /**
  * Build limit order intent
  */
-export const buildLimitIntentTool = tool({
+export const buildLimitIntentTool = {
   description: 'Generate IGS Intent for limit order (buy/sell at specific price)',
-  parameters: z.object({
-    user_address: z.string().describe('User wallet address'),
-    order_type: z.enum(['sell', 'buy']).describe('Order type: sell or buy'),
-    input_token: z.string().describe('Token to sell'),
-    input_amount: z.string().describe('Amount to sell'),
-    output_token: z.string().describe('Token to receive'),
-    limit_price: z.string().describe('Limit price (output per input)'),
-  }),
-  execute: async ({ user_address, order_type, input_token, input_amount, output_token, limit_price }) => {
+  parameters: {
+    type: 'object' as const,
+    properties: {
+      user_address: {
+        type: 'string' as const,
+        description: 'User wallet address',
+      },
+      order_type: {
+        type: 'string' as const,
+        enum: ['sell', 'buy'],
+        description: 'Order type: sell or buy',
+      },
+      input_token: {
+        type: 'string' as const,
+        description: 'Token to sell',
+      },
+      input_amount: {
+        type: 'string' as const,
+        description: 'Amount to sell',
+      },
+      output_token: {
+        type: 'string' as const,
+        description: 'Token to receive',
+      },
+      limit_price: {
+        type: 'string' as const,
+        description: 'Limit price (output per input)',
+      },
+    },
+    required: ['user_address', 'order_type', 'input_token', 'input_amount', 'output_token', 'limit_price'],
+  },
+  execute: async ({ user_address, order_type, input_token, input_amount, output_token, limit_price }: {
+    user_address: string;
+    order_type: 'sell' | 'buy';
+    input_token: string;
+    input_amount: string;
+    output_token: string;
+    limit_price: string;
+  }) => {
     try {
       if (!isValidSuiAddress(user_address)) {
         throw new Error('Invalid Sui address');
@@ -264,4 +356,4 @@ export const buildLimitIntentTool = tool({
       };
     }
   },
-});
+};
