@@ -1,9 +1,9 @@
 /**
- * DeFiLlama API Client for Sui DeFi Data
+ * Llama API Client for Sui DeFi Data (DefiLlama)
  * Fetches real-time TVL, protocol data, and market metrics
  */
 
-interface DeFiLlamaResponse<T> {
+interface LlamaResponse<T> {
   success: boolean;
   data: T;
   timestamp: number;
@@ -75,8 +75,8 @@ class LlamaClient {
   private rateLimitDelay: number;
   
   constructor() {
-    this.baseUrl = process.env.DEFILLAMA_API_BASE || 'https://api.llama.fi';
-    this.rateLimitDelay = parseInt(process.env.DEFILLAMA_RATE_LIMIT_MS || '1000');
+    this.baseUrl = process.env.LLAMA_API_BASE || 'https://api.llama.fi';
+    this.rateLimitDelay = parseInt(process.env.LLAMA_RATE_LIMIT_MS || '1000');
   }
 
   private async fetchWithCache<T>(
@@ -101,7 +101,7 @@ class LlamaClient {
       });
 
       if (!response.ok) {
-        throw new Error(`DeFiLlama API error: ${response.status} ${response.statusText}`);
+        throw new Error(`Llama API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -115,7 +115,7 @@ class LlamaClient {
 
       return data as T;
     } catch (error) {
-      console.error(`Error fetching from DeFiLlama: ${endpoint}`, error);
+      console.error(`Error fetching from Llama: ${endpoint}`, error);
       throw error;
     }
   }
@@ -274,12 +274,13 @@ class LlamaClient {
   }
 }
 
-export const llamaClient = new LlamaClient();
+export const llama = new LlamaClient();
+export const llamaClient = llama; // Backward compatibility
 
 export type {
   SuiProtocol,
   SuiChainData,
   SuiTokenPrice,
   SuiMarketData,
-  DeFiLlamaResponse
+  LlamaResponse
 };
