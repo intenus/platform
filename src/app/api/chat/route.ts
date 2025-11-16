@@ -1,5 +1,5 @@
 /**
- * Chat API Route - Swap Intent Chatbot
+ * Chat API Route - IGS Intent Chatbot
  * Uses AI SDK streamText with OpenAI
  */
 
@@ -12,8 +12,8 @@ import { COINGECKO_API_CONTEXT } from '@/lib/context/coingecko-context';
 // Market tools
 import { getMarketPriceTool, getProtocolInfoTool, getMarketOverviewTool } from '@/lib/tools/market-tools';
 
-// Swap tools
-import { getUserBalanceTool, validateSwapParamsTool, buildSwapIntentTool, buildLimitIntentTool } from '@/lib/tools/swap-tools';
+// IGS Intent tools
+import { getUserBalanceTool, buildIGSIntentTool } from '@/lib/tools/igs-intent-tools';
 
 // Server tools (stub)
 import { submitIntentTool } from '@/lib/tools/server-tools';
@@ -47,13 +47,11 @@ ${COINGECKO_API_CONTEXT}
       getProtocolInfo: getProtocolInfoTool,
       getMarketOverview: getMarketOverviewTool,
 
-      // User balance
+      // User data
       getUserBalance: getUserBalanceTool,
 
-      // Swap validation and building
-      validateSwapParams: validateSwapParamsTool,
-      buildSwapIntent: buildSwapIntentTool,
-      buildLimitIntent: buildLimitIntentTool,
+      // IGS Intent building (general, not swap-specific)
+      buildIGSIntent: buildIGSIntentTool,
 
       // Server integration (stub)
       submitIntent: submitIntentTool,
