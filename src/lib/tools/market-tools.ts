@@ -12,7 +12,7 @@ import { llama } from '@/libs/llamaClient';
  */
 export const getMarketPriceTool = tool({
   description: 'Get current market prices for Sui tokens (SUI, USDC, USDT, WETH, WALRUS)',
-  parameters: z.object({
+  inputSchema: z.object({
     tokens: z.array(z.string()).describe('Token symbols to get prices for, e.g. ["SUI", "USDC"]'),
   }),
   execute: async (params) => {
@@ -72,7 +72,7 @@ export const getMarketPriceTool = tool({
  */
 export const getProtocolInfoTool = tool({
   description: 'Get information about Sui DEX protocols for swap routing (e.g., Cetus, Turbos, FlowX)',
-  parameters: z.object({
+  inputSchema: z.object({
     search: z.string().optional().describe('Protocol name to search for'),
     limit: z.number().optional().default(3).describe('Max number of protocols to return'),
   }),
@@ -116,7 +116,7 @@ export const getProtocolInfoTool = tool({
  */
 export const getMarketOverviewTool = tool({
   description: 'Get Sui blockchain market overview including TVL, volume, and top DEXs',
-  parameters: z.object({}),
+  inputSchema: z.object({}),
   execute: async () => {
     try {
       const marketData = await llama.getSuiMarketData();

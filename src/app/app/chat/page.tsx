@@ -6,18 +6,34 @@
  */
 
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 import { Box, Container, Flex, Heading, Text, VStack, Input, Button, Card } from '@chakra-ui/react';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, FormEvent, useMemo } from 'react';
 import { FiSend, FiLoader } from 'react-icons/fi';
 
+// Helper function to extract text from message parts
+function getMessageText(message: any): string {
+  if (!message.parts) return '';
+  return message.parts
+    .filter((part: any) => part.type === 'text')
+    .map((part: any) => part.text)
+    .join('\n');
+}
+
 export default function ChatPage() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: '/api/chat',
-    initialMessages: [
+  const [input, setInput] = useState('');
+
+  const transport = useMemo(() => new DefaultChatTransport({ api: '/api/chat' }), []);
+
+  const { messages, status, sendMessage } = useChat({
+    transport,
+    messages: [
       {
         id: 'welcome',
         role: 'assistant',
-        content: `Welcome to Intenus Protocol! 👋
+        parts: [{
+          type: 'text',
+          text: `Welcome to Intenus Protocol! 👋
 
 I'm your DeFi assistant. I can help you:
 
@@ -33,10 +49,12 @@ I'm your DeFi assistant. I can help you:
 - "What's my wallet balance?"
 
 What would you like to do?`
+        }]
       }
     ]
   });
 
+  const isLoading = status === 'submitted' || status === 'streaming';
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -47,11 +65,11 @@ What would you like to do?`
     scrollToBottom();
   }, [messages]);
 
-  const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (input.trim()) {
-      handleSubmit(e);
-    }
+    if (!input.trim() || isLoading) return;
+    sendMessage({ text: input });
+    setInput('');
   };
 
   return (
@@ -79,7 +97,7 @@ What would you like to do?`
           >
             <Card.Body>
               <VStack gap={4} align="stretch">
-                {messages.map((message) => (
+                {messages.map((message: any) => (
                   <Box
                     key={message.id}
                     alignSelf={message.role === 'user' ? 'flex-end' : 'flex-start'}
@@ -115,21 +133,23 @@ What would you like to do?`
                         }}
                       >
                         <Text whiteSpace="pre-wrap">
-                          {message.content}
+                          {getMessageText(message)}
                         </Text>
                       </Box>
 
                       {/* Display tool invocations */}
-                      {message.toolInvocations && message.toolInvocations.length > 0 && (
+                      {message.parts && message.parts.some((p: any) => p.type === 'tool-call') && (
                         <Box mt={2} pt={2} borderTopWidth="1px" borderColor="whiteAlpha.300">
-                          {message.toolInvocations.map((tool: any) => (
-                            <Box key={tool.toolCallId} fontSize="xs" opacity={0.8}>
-                              <Text>
-                                🔧 {tool.toolName}
-                                {tool.state === 'result' && ' ✓'}
-                              </Text>
-                            </Box>
-                          ))}
+                          {message.parts
+                            .filter((p: any) => p.type === 'tool-call')
+                            .map((tool: any) => (
+                              <Box key={tool.toolCallId} fontSize="xs" opacity={0.8}>
+                                <Text>
+                                  🔧 {tool.toolName}
+                                  {tool.result && ' ✓'}
+                                </Text>
+                              </Box>
+                            ))}
                         </Box>
                       )}
                     </Box>
@@ -163,7 +183,7 @@ What would you like to do?`
             <Flex gap={2}>
               <Input
                 value={input}
-                onChange={handleInputChange}
+                onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask me anything about DeFi on Sui..."
                 size="lg"
                 bg="white"

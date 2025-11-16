@@ -93,11 +93,12 @@ class LlamaClient {
   }
 
   async getSuiMarketData(): Promise<MarketData> {
-    const [protocols, volumeData] = await Promise.all([
+    const [protocols, volumeDataRaw] = await Promise.all([
       this.getTopSuiProtocols(10),
       this.fetchWithCache('/overview/dexs/Sui?excludeTotalDataChart=true&excludeTotalDataChartBreakdown=true')
     ]);
 
+    const volumeData = volumeDataRaw as any;
     const totalTvl = protocols.reduce((sum, p) => sum + (p.currentChainTvls?.Sui || 0), 0);
     const tokenPrices = await this.getTokenPrices(['sui', 'usd-coin', 'tether']);
 

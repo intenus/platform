@@ -12,7 +12,7 @@ import { z } from 'zod';
  */
 export const submitIntentTool = tool({
   description: 'Submit IGS Intent to Intenus Protocol solvers network for execution. Solvers will compete to provide the best execution path.',
-  parameters: z.object({
+  inputSchema: z.object({
     intent: z.any().describe('The IGS Intent object to submit'),
   }),
   execute: async (params) => {
