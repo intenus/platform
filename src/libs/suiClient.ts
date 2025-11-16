@@ -24,15 +24,21 @@ export const POPULAR_TOKENS = {
     decimals: 9,
     name: 'Sui',
   },
+  WALRUS: {
+    symbol: 'WALRUS',
+    coinType: '0x356a26eb9e012a68958082340d4c4116e7f55615cf27affcff209cf0ae544f59::wal::WAL',
+    decimals: 9,
+    name: 'Walrus',
+  },
   USDC: {
     symbol: 'USDC',
-    coinType: '0x5d4b302506645c37ff133b98c4b50a5ae14841659738d6d733d59d0d217a93bf::coin::COIN',
+    coinType: '0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC',
     decimals: 6,
     name: 'USD Coin',
   },
   USDT: {
     symbol: 'USDT',
-    coinType: '0xc060006111016b8a020ad5b33834984a437aaa7d3c74c18e09a95d48aceab08c::coin::COIN',
+    coinType: '0x375f70cf2ae4c00bf37117d0c85a2c71545e6ee05c4a5c7d282cd66a4504b068::usdt::USDT',
     decimals: 6,
     name: 'Tether USD',
   },

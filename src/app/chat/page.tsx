@@ -3,6 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { Box, VStack, HStack, Input, Button, Card, Text, Spinner } from '@chakra-ui/react';
 import { useState, FormEvent } from 'react';
+import type { UIMessage } from 'ai';
 
 export default function ChatPage() {
   const [input, setInput] = useState('');
@@ -12,8 +13,8 @@ export default function ChatPage() {
     onError: (error) => {
       console.error('Chat error:', error);
     },
-    onFinish: (message) => {
-      console.log('Message finished:', message);
+    onFinish: (options) => {
+      console.log('Message finished:', options.message);
     }
   });
 
@@ -27,7 +28,13 @@ export default function ChatPage() {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    sendMessage({ text: input });
+    sendMessage({
+      role: 'user',
+      parts: [{
+        type: 'text',
+        text: input
+      }]
+    });
     setInput('');
   };
 
@@ -37,7 +44,7 @@ export default function ChatPage() {
         {/* Header */}
         <Card.Root>
           <Card.Body>
-            <Card.Title>Sui Swap Assistant</Card.Title>
+            <Card.Title>Intenus Assistant</Card.Title>
             <Card.Description>
               Chat with AI to create swap intents on Sui. Supports spot swaps and limit orders.
             </Card.Description>
