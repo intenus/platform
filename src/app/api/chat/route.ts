@@ -43,7 +43,7 @@ export async function POST(req: Request) {
       // User data
       getUserBalance: getUserBalanceTool,
 
-      // IGS Intent building (general, not swap-specific)
+      // IGS Intent building (general)
       buildIGSIntent: buildIGSIntentTool,
 
       // Server integration (stub)

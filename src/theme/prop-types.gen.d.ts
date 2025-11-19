@@ -30,6 +30,8 @@ export interface UtilityValues {
     | "cyan"
     | "purple"
     | "pink"
+    | "primary"
+    | "secondary"
     | "bg"
     | "fg"
     | "border"
