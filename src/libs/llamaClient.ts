@@ -57,22 +57,17 @@ class LlamaClient {
       return cached.data as T;
     }
 
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        headers: { 'Accept': 'application/json' }
-      });
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      headers: { 'Accept': 'application/json' }
+    });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      this.cache.set(cacheKey, { data, timestamp: Date.now(), ttl: cacheTtl });
-      return data as T;
-    } catch (error) {
-      console.error(`Error fetching ${endpoint}:`, error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
     }
+
+    const data = await response.json();
+    this.cache.set(cacheKey, { data, timestamp: Date.now(), ttl: cacheTtl });
+    return data as T;
   }
 
   async getSuiProtocols(): Promise<SuiProtocol[]> {
@@ -133,8 +128,7 @@ class LlamaClient {
       });
 
       return result;
-    } catch (error) {
-      console.warn('Failed to fetch token prices:', error);
+    } catch {
       return {};
     }
   }

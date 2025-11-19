@@ -63,19 +63,12 @@ export default function ChatPage() {
         // });
 
         // const { blobId } = await flow.getBlob();
-        // console.log({ blobId });
 
         // const { digest } = await signAndExecuteTransaction({
         //   transaction: registerTx,
         // });
         // await flow.upload({ digest });
       }
-    },
-    onError: (error) => {
-      console.error("Chat error:", error);
-    },
-    onFinish: (options) => {
-      console.log("Message finished:", options.message);
     },
   });
 
@@ -98,9 +91,9 @@ export default function ChatPage() {
   };
 
   return (
-    <VStack w="full" h={"full"} maxW={["full", "xl", "2xl", "4xl"]}>
-      <VStack gap={"4"} align="stretch" flex={1}>
-        {messages.map((message) =>(
+    <VStack w="full" h={"full"} maxW={["full", "xl", "2xl", "4xl"]} p={4}>
+      <VStack gap={"4"} align="stretch" flex={1} w="full" overflowY="auto">
+        {messages.map((message) => (
           message.role === "user" ? (
             <MessageUser key={message.id} message={message} />
           ) : (
@@ -109,7 +102,12 @@ export default function ChatPage() {
         ))}
       </VStack>
 
-      <MessageInput onSubmit={handleSubmit} />
+      <MessageInput
+        onSubmit={handleSubmit}
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        disabled={isLoading}
+      />
     </VStack>
   );
 }
