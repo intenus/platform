@@ -14,6 +14,9 @@ export const colors = defineTokens.colors({
     value: "#FFFFFF",
   },
   whiteAlpha: {
+    "0": {
+      value: "#ffffff",
+    },
     "50": {
       value: "rgba(255, 255, 255, 0.04)",
     },
@@ -80,7 +83,7 @@ export const colors = defineTokens.colors({
       value: "rgba(0, 0, 0, 0.92)",
     },
     "950": {
-      value: "rgba(0, 0, 0, 0.95)",
+      value: "rgba(0, 0, 0, 0.0095)",
     },
   },
   gray: {
@@ -431,6 +434,76 @@ export const colors = defineTokens.colors({
     },
     "950": {
       value: "#2c0514",
+    },
+  },
+  primary: {
+    "50": {
+      value: "#f0efff",
+    },
+    "100": {
+      value: "#d8d5fe",
+    },
+    "200": {
+      value: "#b2acfe",
+    },
+    "300": {
+      value: "#8a82fc",
+    },
+    "400": {
+      value: "#6c63fa",
+    },
+    "500": {
+      value: "#3b30f8",
+    },
+    "600": {
+      value: "#2b23d5",
+    },
+    "700": {
+      value: "#1e18b2",
+    },
+    "800": {
+      value: "#140f8f",
+    },
+    "900": {
+      value: "#0c0977",
+    },
+    "950": {
+      value: "#060442",
+    },
+  },
+  secondary: {
+    "50": {
+      value: "#f3f3ff",
+    },
+    "100": {
+      value: "#dddcff",
+    },
+    "200": {
+      value: "#bbb9ff",
+    },
+    "300": {
+      value: "#9896ff",
+    },
+    "400": {
+      value: "#7f7bff",
+    },
+    "500": {
+      value: "#5450ff",
+    },
+    "600": {
+      value: "#3d3adb",
+    },
+    "700": {
+      value: "#2a28b7",
+    },
+    "800": {
+      value: "#1b1993",
+    },
+    "900": {
+      value: "#100f7a",
+    },
+    "950": {
+      value: "#0a093a",
     },
   },
 })
