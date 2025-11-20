@@ -12,6 +12,10 @@ import {
   MarketContext,
   IntentComparison,
   RoutingConstraints,
+  ExecutionProbabilitySettings,
+  SolverCompetitionSettings,
+  RoutingAnalysis,
+  IntentExplanationParams,
 } from "./type";
 import { llama } from "@/libs/llamaClient";
 import { getTokenPriceId } from "@/libs/suiClient";
@@ -217,10 +221,16 @@ export function calculateSmartDefaults(
     estimated_gas_range: estimateGasRange(params),
     expected_slippage: `${(finalSlippageBps / 100).toFixed(2)}%`,
     execution_probability: calculateExecutionProbability(
-      baseSettings,
+      {
+        requires_tee: riskAdj.requires_tee,
+        slippage_bps: finalSlippageBps,
+        deadline_minutes: finalDeadlineMinutes,
+      },
       marketData
     ),
-    solver_competition: estimateSolverCompetition(baseSettings),
+    solver_competition: estimateSolverCompetition({
+      min_solver_stake: String(BigInt(baseSettings.min_solver_stake) * BigInt(Math.round(riskAdj.stake_multiplier))),
+    }),
     tags: generateTags(params, priority, risk_tolerance),
   };
 }
@@ -259,7 +269,7 @@ export function estimateGasRange(params: SmartDefaultsParams): string {
 }
 
 export function calculateExecutionProbability(
-  settings: any,
+  settings: ExecutionProbabilitySettings,
   marketData: MarketContext | null
 ): number {
   // Base probability
@@ -279,7 +289,7 @@ export function calculateExecutionProbability(
   return Math.min(95, Math.max(60, probability));
 }
 
-export function estimateSolverCompetition(settings: any): string {
+export function estimateSolverCompetition(settings: SolverCompetitionSettings): string {
   const stake = BigInt(settings.min_solver_stake);
   const minStake = BigInt("1000000000000");
 
@@ -449,7 +459,7 @@ export function estimateEligibleSolvers(intent: IGSIntent): number {
   return Math.max(3, Math.round(base));
 }
 
-export function analyzeRoutingConstraints(routing?: RoutingConstraints): any {
+export function analyzeRoutingConstraints(routing?: RoutingConstraints): RoutingAnalysis {
   if (!routing) return { type: "unrestricted" };
 
   return {
@@ -588,14 +598,22 @@ export function generateImprovementRecommendations(
     : ["Intent is well-structured"];
 }
 
-export function generateFixSuggestions(intent: any): string[] {
+export function generateFixSuggestions(intent: unknown): string[] {
   const suggestions: string[] = [];
 
-  if (!intent.igs_version) suggestions.push('Add igs_version: "1.0.0"');
-  if (!intent.user_address) suggestions.push("Add valid user_address");
-  if (!intent.operation)
+  // Type guard for object
+  if (typeof intent !== 'object' || intent === null) {
+    suggestions.push('Intent must be an object');
+    return suggestions;
+  }
+
+  const obj = intent as Record<string, unknown>;
+
+  if (!obj.igs_version) suggestions.push('Add igs_version: "1.0.0"');
+  if (!obj.user_address) suggestions.push("Add valid user_address");
+  if (!obj.operation)
     suggestions.push("Add operation object with mode, inputs, and outputs");
-  if (!intent.object?.policy)
+  if (!obj.object || typeof obj.object !== 'object' || !(obj.object as Record<string, unknown>).policy)
     suggestions.push("Add object.policy with access conditions");
 
   return suggestions;
@@ -606,7 +624,7 @@ export function generateFixSuggestions(intent: any): string[] {
 export function generateIntentExplanation(
   intent: IGSIntent,
   smartDefaults: SmartDefaults,
-  params: any
+  params: IntentExplanationParams
 ): IntentExplanation {
   const analysis = analyzeIGSIntent(intent);
 
