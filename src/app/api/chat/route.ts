@@ -12,7 +12,12 @@ import { LLAMA_API_CONTEXT } from '@/ai/context/llama-context';
 import { getMarketPriceTool, getProtocolInfoTool, getMarketOverviewTool } from '@/ai/tools/market-tools';
 
 // IGS Intent tools
-import { getUserBalanceTool, buildIGSIntentTool } from '@/ai/tools/igs-intent-tools';
+import {
+  getUserBalanceTool,
+  createSwapIntentTool,
+  buildIGSIntentTool,
+  getSupportedTokensTool
+} from '@/ai/tools/igs-intent-tools';
 
 // Server tools (stub)
 import { submitIntentTool } from '@/ai/tools/server-tools';
@@ -41,9 +46,11 @@ ${LLAMA_API_CONTEXT}
 
         // User data
         getUserBalance: getUserBalanceTool,
+        getSupportedTokens: getSupportedTokensTool,
 
-        // IGS Intent building (general)
-        buildIGSIntent: buildIGSIntentTool,
+        // Intent building (simplified → complete flow)
+        createSwapIntent: createSwapIntentTool, // Simplified, user-friendly
+        buildIGSIntent: buildIGSIntentTool,     // Advanced, complete validation
 
         // Server integration (stub)
         submitIntent: submitIntentTool,
