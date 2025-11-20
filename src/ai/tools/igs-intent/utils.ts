@@ -193,7 +193,7 @@ export function calculateSmartDefaults(params: SmartDefaultsParams): SmartDefaul
 
 // ===== ESTIMATION FUNCTIONS =====
 
-export function generateExpectedOutcome(params: SmartDefaultsParams, marketData: MarketContext): string {
+export function generateExpectedOutcome(params: SmartDefaultsParams, marketData: MarketContext | null): string {
   const { inputToken, outputToken, amount } = params;
   return `Expected to receive ${outputToken.symbol} in exchange for ${amount} ${inputToken.symbol} with optimal routing`;
 }
@@ -221,14 +221,14 @@ export function estimateGasRange(params: SmartDefaultsParams): string {
   return ranges[priority as keyof typeof ranges] || '$0.02-0.08';
 }
 
-export function calculateExecutionProbability(settings: any, marketData: MarketContext): number {
+export function calculateExecutionProbability(settings: any, marketData: MarketContext | null): number {
   // Base probability
   let probability = 85;
 
   // Adjust based on market data if available
   if (marketData) {
-    if (marketData.overview?.market_health === 'healthy') probability += 10;
-    if (marketData.overview?.liquidity_assessment === 'excellent') probability += 5;
+    if (marketData.market_volatility === 'low') probability += 10;
+    if (marketData.liquidity_depth === 'excellent') probability += 5;
   }
 
   // Adjust based on settings
@@ -296,7 +296,13 @@ export function analyzeIGSIntent(intent: IGSIntent): IntentAnalysis {
     },
 
     execution_outlook: {
-      probability_estimate: calculateExecutionProbability(intent, null),
+      probability_estimate: calculateExecutionProbability({
+        requires_tee: intent.object.policy.access_condition.requires_tee_attestation,
+        slippage_bps: intent.constraints?.max_slippage_bps || 0,
+        deadline_minutes: intent.constraints?.deadline_ms
+          ? (intent.constraints.deadline_ms - Date.now()) / (1000 * 60)
+          : 60
+      }, null),
       key_risks: identifyExecutionRisks(intent),
       optimization_opportunities: findOptimizationOpportunities(intent),
     },
@@ -467,7 +473,7 @@ export function generateImprovementRecommendations(intent: IGSIntent): string[] 
   return recommendations.length > 0 ? recommendations : ['Intent is well-structured'];
 }
 
-export function generateFixSuggestions(intent: IGSIntent): string[] {
+export function generateFixSuggestions(intent: any): string[] {
   const suggestions: string[] = [];
 
   if (!intent.igs_version) suggestions.push('Add igs_version: "1.0.0"');

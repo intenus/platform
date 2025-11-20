@@ -199,7 +199,7 @@ export interface SmartDefaultsParams {
   inputToken: TokenInfo;
   outputToken: TokenInfo;
   amount: string;
-  marketData: MarketContext;
+  marketData: MarketContext | null;
 }
 
 /**
