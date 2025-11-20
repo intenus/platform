@@ -1,4 +1,10 @@
-// Types để AI hiểu rõ IGS Intent structure
+/**
+ * Complete Type Definitions for IGS Intent Tools
+ * These types help AI understand and generate compliant IGS Intents
+ */
+
+// ===== ANALYSIS TYPES =====
+
 export interface IntentAnalysis {
   intent_summary: {
     type: string;
@@ -22,7 +28,7 @@ export interface IntentAnalysis {
   market_factors: {
     slippage_sensitivity: number | 'unlimited';
     deadline_pressure: number | 'no_limit';
-    routing_restrictions?: any;
+    routing_restrictions?: RoutingConstraints;
   };
   execution_outlook: {
     probability_estimate: number; // 0-100
@@ -30,6 +36,8 @@ export interface IntentAnalysis {
     optimization_opportunities: string[];
   };
 }
+
+// ===== SMART DEFAULTS =====
 
 export interface SmartDefaults {
   intent_type: string;
@@ -39,9 +47,35 @@ export interface SmartDefaults {
   max_hops: number;
   min_solver_stake: string;
   requires_tee: boolean;
-  ranking_weights: Record<string, number>;
-  // ... more fields
+  ranking_weights: RankingWeights;
+  access_window_ms: number;
+  auto_revoke_hours: number;
+  should_encrypt: boolean;
+  output_amount: AmountSpec;
+  expected_outcome?: string;
+  max_gas_cost?: string;
+  estimated_gas_range: string;
+  expected_slippage: string;
+  execution_probability: number;
+  solver_competition: string;
+  tags: string[];
 }
+
+export interface RankingWeights {
+  surplus_weight: number;
+  gas_cost_weight: number;
+  execution_speed_weight: number;
+  reputation_weight: number;
+}
+
+export interface AmountSpec {
+  type: 'exact' | 'range' | 'all';
+  value?: string;
+  min?: string;
+  max?: string;
+}
+
+// ===== EXPLANATION & COMPARISON =====
 
 export interface IntentExplanation {
   summary: string;
@@ -70,4 +104,101 @@ export interface IntentExplanation {
     validation_status: string;
     compliance_notes: string[];
   };
+}
+
+export interface IntentComparison {
+  summary: string;
+  intents: IntentComparisonItem[];
+  recommendation: {
+    best_for_gas: number; // index
+    best_for_speed: number;
+    best_for_price: number;
+    overall_best: number;
+    reasoning: string;
+  };
+}
+
+export interface IntentComparisonItem {
+  index: number;
+  intent_type: string;
+  metrics: {
+    expected_gas_cost?: string;
+    slippage_tolerance?: string;
+    execution_speed?: string;
+    solver_requirements?: string;
+    success_probability?: string;
+    privacy_level?: string;
+  };
+  pros: string[];
+  cons: string[];
+}
+
+// ===== ROUTING & CONSTRAINTS =====
+
+export interface RoutingConstraints {
+  max_hops?: number;
+  whitelist_protocols?: string[];
+  blacklist_protocols?: string[];
+  preferred_route?: string[];
+}
+
+// ===== MARKET CONTEXT =====
+
+export interface MarketContext {
+  input_token: string;
+  output_token: string;
+  current_price?: number;
+  liquidity_depth?: string;
+  typical_slippage?: string;
+  recommended_protocols?: string[];
+  market_volatility?: 'low' | 'medium' | 'high';
+}
+
+// ===== CALCULATION PARAMS =====
+
+export interface SmartDefaultsParams {
+  priority: string;
+  risk_tolerance: string;
+  urgency: string;
+  inputToken: TokenInfo;
+  outputToken: TokenInfo;
+  amount: string;
+  marketData: any;
+}
+
+export interface TokenInfo {
+  symbol: string;
+  name: string;
+  decimals: number;
+  coinType: string;
+}
+
+// ===== VALIDATION RESULTS =====
+
+export interface ValidationResult {
+  success: boolean;
+  valid: boolean;
+  intent?: any;
+  analysis?: IntentAnalysis;
+  compliance_score?: number;
+  recommendations?: string[];
+  error?: string;
+  suggestions?: string[];
+}
+
+// ===== INTENT BUILDER RESULT =====
+
+export interface IntentBuilderResult {
+  success: boolean;
+  intent?: any;
+  smart_choices?: SmartDefaults;
+  explanation?: IntentExplanation;
+  estimated_performance?: {
+    gas_cost_range: string;
+    slippage_expected: string;
+    execution_probability: number;
+    solver_competition_level: string;
+  };
+  error?: string;
+  supported_tokens?: string[];
 }
