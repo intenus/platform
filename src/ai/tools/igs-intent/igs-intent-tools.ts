@@ -391,7 +391,7 @@ export const buildSmartIGSIntentTool = tool({
         outputToken,
         amount: params.input_amount,
         marketData,
-      };
+      };  
 
       const smartDefaults = calculateSmartDefaults(smartDefaultsParams);
 
