@@ -9,14 +9,16 @@ import { SYSTEM_PROMPT } from '@/ai/context/system-prompt';
 import { LLAMA_API_CONTEXT } from '@/ai/context/llama-context';
 
 // Market tools
-import { getMarketPriceTool, getProtocolInfoTool, getMarketOverviewTool } from '@/ai/tools/market/market-tools';
+import { getMarketPriceTool, getDEXProtocolInfoTool, getMarketOverviewTool } from '@/ai/tools/market/market-tools';
 
 // IGS Intent tools
 import {
   getUserBalanceTool,
   createSwapIntentTool,
-  buildIGSIntentTool,
-  getSupportedTokensTool
+  buildSmartIGSIntentTool,
+  getSupportedTokensTool,
+  validateIGSIntentTool,
+  compareIGSIntentsTool
 } from '@/ai/tools/igs-intent/igs-intent-tools';
 
 // Server tools (stub)
@@ -41,16 +43,20 @@ ${LLAMA_API_CONTEXT}
       tools: {
         // Market data tools
         getMarketPrice: getMarketPriceTool,
-        getProtocolInfo: getProtocolInfoTool,
+        getDEXProtocolInfo: getDEXProtocolInfoTool,
         getMarketOverview: getMarketOverviewTool,
 
         // User data
         getUserBalance: getUserBalanceTool,
         getSupportedTokens: getSupportedTokensTool,
 
-        // Intent building (simplified → complete flow)
-        createSwapIntent: createSwapIntentTool, // Simplified, user-friendly
-        buildIGSIntent: buildIGSIntentTool,     // Advanced, complete validation
+        // Intent building (MAIN: buildSmartIGSIntent)
+        createSwapIntent: createSwapIntentTool,       // Simple, beginner-friendly
+        buildSmartIGSIntent: buildSmartIGSIntentTool, // RECOMMENDED - AI-optimized with market data
+
+        // Intent validation & analysis
+        validateIGSIntent: validateIGSIntentTool,
+        compareIGSIntents: compareIGSIntentsTool,
 
         // Server integration (stub)
         submitIntent: submitIntentTool,
