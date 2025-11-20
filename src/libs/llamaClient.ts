@@ -104,8 +104,8 @@ class LlamaClient {
       topProtocols: protocols,
       tokenPrices,
       volumeData: {
-        daily: volumeData?.totalDataChart?.[volumeData.totalDataChart.length - 1]?.[1] || 0,
-        weekly: volumeData?.totalDataChart?.slice(-7).reduce((sum: number, day: [number, number]) => sum + (day[1] || 0), 0) || 0
+        daily: volumeData?.total24h || 0,
+        weekly: volumeData?.total7d || 0
       }
     };
   }
