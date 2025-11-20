@@ -1,11 +1,11 @@
 import { ToolSet } from "ai";
 import { submitIntentTool } from "./server-tools";
-import { buildIGSIntentTool, getUserBalanceTool } from "./igs-intent-tools";
+import { buildIGSIntentTool, getUserBalanceTool } from "./igs-intent/igs-intent-tools";
 import {
   getMarketOverviewTool,
   getMarketPriceTool,
   getProtocolInfoTool,
-} from "./market-tools";
+} from "./market/market-tools";
 
 export const tools = {
   submitIntentTool,

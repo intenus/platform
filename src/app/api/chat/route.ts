@@ -9,7 +9,7 @@ import { SYSTEM_PROMPT } from '@/ai/context/system-prompt';
 import { LLAMA_API_CONTEXT } from '@/ai/context/llama-context';
 
 // Market tools
-import { getMarketPriceTool, getProtocolInfoTool, getMarketOverviewTool } from '@/ai/tools/market-tools';
+import { getMarketPriceTool, getProtocolInfoTool, getMarketOverviewTool } from '@/ai/tools/market/market-tools';
 
 // IGS Intent tools
 import {
@@ -17,7 +17,7 @@ import {
   createSwapIntentTool,
   buildIGSIntentTool,
   getSupportedTokensTool
-} from '@/ai/tools/igs-intent-tools';
+} from '@/ai/tools/igs-intent/igs-intent-tools';
 
 // Server tools (stub)
 import { submitIntentTool } from '@/ai/tools/server-tools';
