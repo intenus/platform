@@ -58,8 +58,8 @@ export interface IntentAnalysis {
  * Used to auto-populate IGSIntent parameters optimally
  */
 export interface SmartDefaults {
-  intent_type: IGSIntentType;
-  operation_mode: string;
+  intent_type: IGSIntent["intent_type"];
+  operation_mode: IGSIntent["operation"]["mode"];
   slippage_bps: number;
   deadline_minutes: number;
   max_hops: number;

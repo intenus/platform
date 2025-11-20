@@ -450,13 +450,15 @@ export const buildSmartIGSIntentTool = tool({
               amount: smartDefaults.output_amount,
             },
           ],
-          expected_outcome: smartDefaults.expected_outcome,
         },
 
         constraints: {
           max_slippage_bps: params.custom_slippage_bps || smartDefaults.slippage_bps,
           deadline_ms: now + ((params.deadline_minutes || smartDefaults.deadline_minutes) * 60 * 1000),
-          max_gas_cost: smartDefaults.max_gas_cost,
+          max_gas_cost: smartDefaults.max_gas_cost ? {
+            asset_id: inputToken.coinType,
+            amount: smartDefaults.max_gas_cost
+          } : undefined,
           routing: {
             max_hops: smartDefaults.max_hops,
             whitelist_protocols: params.protocol_preferences,
@@ -465,7 +467,7 @@ export const buildSmartIGSIntentTool = tool({
         },
 
         preferences: {
-          optimization_goal: params.priority,
+          optimization_goal: params.priority === 'maximum_safety' ? 'balanced' : params.priority,
           ranking_weights: smartDefaults.ranking_weights,
           execution: {
             mode: 'best_solution',
