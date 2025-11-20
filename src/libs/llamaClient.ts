@@ -110,6 +110,36 @@ class LlamaClient {
     };
   }
 
+  /**
+   * Get token prices by full price IDs (e.g. "coingecko:sui", "sui:0x...")
+   * Uses DeFiLlama format: {chain}:{address} or coingecko:{id}
+   */
+  async getTokenPricesByIds(priceIds: string[]): Promise<Record<string, TokenPrice>> {
+    try {
+      const coinsEndpoint = `https://coins.llama.fi/prices/current/${priceIds.join(',')}`;
+      const response = await fetch(coinsEndpoint);
+      const data = await response.json();
+
+      const result: Record<string, TokenPrice> = {};
+      Object.entries(data.coins || {}).forEach(([fullId, coinData]: [string, any]) => {
+        result[fullId] = {
+          symbol: coinData.symbol?.toUpperCase() || fullId.split(':')[1] || fullId,
+          price: coinData.price || 0,
+          timestamp: coinData.timestamp || Date.now(),
+          confidence: coinData.confidence || 0.95
+        };
+      });
+
+      return result;
+    } catch {
+      return {};
+    }
+  }
+
+  /**
+   * Legacy method - Get token prices by CoinGecko IDs only
+   * @deprecated Use getTokenPricesByIds instead for full chain:address support
+   */
   async getTokenPrices(tokenIds: string[]): Promise<Record<string, TokenPrice>> {
     try {
       const coinsEndpoint = `https://coins.llama.fi/prices/current/${tokenIds.map(id => `coingecko:${id}`).join(',')}`;

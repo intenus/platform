@@ -1,17 +1,20 @@
 /**
  * Market Data Tools for LLM
  * Fetch prices, protocols, and market information using tool() helper
+ * Uses DeFiLlama API with proper chain:address or coingecko:id format
  */
 
 import { tool } from 'ai';
 import { z } from 'zod';
 import { llama } from '@/libs/llamaClient';
+import { getTokenInfo, getTokenPriceId } from '@/libs/suiClient';
 
 /**
  * Get current market prices for tokens
+ * Supports DeFiLlama format: coingecko:{id} or sui:{address}
  */
 export const getMarketPriceTool = tool({
-  description: 'Get current market prices for Sui tokens (SUI, USDC, USDT, WETH, WALRUS)',
+  description: 'Get current market prices for Sui tokens (SUI, USDC, USDT, WETH, WALRUS). Returns real-time prices from DeFiLlama.',
   inputSchema: z.object({
     tokens: z.array(z.string()).describe('Token symbols to get prices for, e.g. ["SUI", "USDC"]'),
   }),
@@ -19,36 +22,40 @@ export const getMarketPriceTool = tool({
     const { tokens } = params;
 
     try {
-      // Map symbols to CoinGecko IDs
-      const tokenMap: Record<string, string> = {
-        SUI: 'sui',
-        USDC: 'usd-coin',
-        USDT: 'tether',
-        WETH: 'weth',
-        WALRUS: 'walrus-protocol',
-      };
+      // Build price IDs in DeFiLlama format: coingecko:{id} or sui:{address}
+      const priceIds: string[] = [];
+      const symbolToPriceId: Record<string, string> = {};
 
-      const tokenIds = tokens
-        .map((t) => tokenMap[t.toUpperCase()])
-        .filter(Boolean);
+      for (const token of tokens) {
+        const upperToken = token.toUpperCase();
+        const priceId = getTokenPriceId(upperToken);
 
-      if (tokenIds.length === 0) {
+        if (priceId) {
+          priceIds.push(priceId);
+          symbolToPriceId[upperToken] = priceId;
+        }
+      }
+
+      if (priceIds.length === 0) {
         return {
           success: false,
-          error: 'No valid tokens provided',
+          error: 'No valid tokens provided. Supported: SUI, USDC, USDT, WETH, WALRUS',
         };
       }
 
-      const prices = await llama.getTokenPrices(tokenIds);
+      // Fetch prices using comma-separated format
+      const prices = await llama.getTokenPricesByIds(priceIds);
 
-      const result: Record<string, { price: number; symbol: string }> = {};
+      const result: Record<string, { price: number; symbol: string; confidence?: number }> = {};
 
-      Object.entries(prices).forEach(([id, data]) => {
-        const symbol = Object.keys(tokenMap).find((k) => tokenMap[k] === id);
-        if (symbol) {
+      // Map back to symbols
+      Object.entries(symbolToPriceId).forEach(([symbol, priceId]) => {
+        const priceData = prices[priceId];
+        if (priceData) {
           result[symbol] = {
-            symbol: data.symbol,
-            price: data.price,
+            symbol: priceData.symbol || symbol,
+            price: priceData.price,
+            confidence: priceData.confidence,
           };
         }
       });
