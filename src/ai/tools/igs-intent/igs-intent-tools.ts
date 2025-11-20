@@ -499,7 +499,10 @@ export const buildSmartIGSIntentTool = tool({
       const validatedIntent = builder.build();
 
       // 6. Generate explanation using utility function
-      const explanation = generateIntentExplanation(validatedIntent, smartDefaults, params);
+      const explanation = generateIntentExplanation(validatedIntent, smartDefaults, {
+        intent_description: params.intent_description,
+        priority: params.priority,
+      });
 
       return {
         success: true,

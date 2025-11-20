@@ -190,6 +190,40 @@ export interface MarketContext {
 // ===== CALCULATION PARAMS =====
 
 /**
+ * Settings for execution probability calculation
+ */
+export interface ExecutionProbabilitySettings {
+  requires_tee: boolean;
+  slippage_bps: number;
+  deadline_minutes: number;
+}
+
+/**
+ * Settings for solver competition estimation
+ */
+export interface SolverCompetitionSettings {
+  min_solver_stake: string;
+}
+
+/**
+ * Routing constraints analysis result
+ */
+export interface RoutingAnalysis {
+  type: 'unrestricted' | 'constrained';
+  max_hops?: number | 'unlimited';
+  whitelisted_protocols?: number;
+  blacklisted_protocols?: number;
+}
+
+/**
+ * Parameters for intent explanation generation
+ */
+export interface IntentExplanationParams {
+  intent_description: string;
+  priority: string;
+}
+
+/**
  * Input parameters for smart defaults calculation
  */
 export interface SmartDefaultsParams {
