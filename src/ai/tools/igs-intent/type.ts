@@ -1,13 +1,24 @@
 /**
- * Complete Type Definitions for IGS Intent Tools
- * These types help AI understand and generate compliant IGS Intents
+ * Type Definitions for IGS Intent AI Tools
+ * These types extend @intenus/common types for AI-specific functionality
+ *
+ * Core IGS types are imported from @intenus/common:
+ * - IGSIntent, IGSIntentType, IGSAmount
+ *
+ * These types are AI tool-specific helpers for:
+ * - Analysis and optimization
+ * - Smart defaults calculation
+ * - Intent comparison and explanation
  */
 
-import { DexOverviewResponse } from "@/libs/llama.type";
 import { IGSAmount, IGSIntent, IGSIntentType } from "@intenus/common";
 
 // ===== ANALYSIS TYPES =====
 
+/**
+ * AI-generated analysis of an IGS Intent
+ * Provides insights for users about intent complexity, requirements, and execution
+ */
 export interface IntentAnalysis {
   intent_summary: {
     type: string;
@@ -42,6 +53,10 @@ export interface IntentAnalysis {
 
 // ===== SMART DEFAULTS =====
 
+/**
+ * Smart defaults calculated by AI based on user preferences and market conditions
+ * Used to auto-populate IGSIntent parameters optimally
+ */
 export interface SmartDefaults {
   intent_type: IGSIntentType;
   operation_mode: string;
@@ -64,6 +79,10 @@ export interface SmartDefaults {
   tags: string[];
 }
 
+/**
+ * Ranking weights for solver selection
+ * Used in IGSIntent.preferences.ranking_weights
+ */
 export interface RankingWeights {
   surplus_weight: number;
   gas_cost_weight: number;
@@ -71,15 +90,12 @@ export interface RankingWeights {
   reputation_weight: number;
 }
 
-export interface AmountSpec {
-  type: 'exact' | 'range' | 'all';
-  value?: string;
-  min?: string;
-  max?: string;
-}
-
 // ===== EXPLANATION & COMPARISON =====
 
+/**
+ * Human-readable explanation of an IGS Intent for users
+ * Helps users understand what the intent will do and associated costs/risks
+ */
 export interface IntentExplanation {
   summary: string;
   execution_plan?: {
@@ -109,6 +125,10 @@ export interface IntentExplanation {
   };
 }
 
+/**
+ * Side-by-side comparison of multiple IGS Intents
+ * Helps users understand trade-offs between different optimization strategies
+ */
 export interface IntentComparison {
   summary: string;
   intents: IntentComparisonItem[];
@@ -121,6 +141,9 @@ export interface IntentComparison {
   };
 }
 
+/**
+ * Individual intent item in a comparison
+ */
 export interface IntentComparisonItem {
   index: number;
   intent_type: string;
@@ -138,15 +161,22 @@ export interface IntentComparisonItem {
 
 // ===== ROUTING & CONSTRAINTS =====
 
+/**
+ * Routing constraints for intent execution
+ * Matches IGSConstraints.routing structure from @intenus/common
+ */
 export interface RoutingConstraints {
   max_hops?: number;
   whitelist_protocols?: string[];
   blacklist_protocols?: string[];
-  preferred_route?: string[];
 }
 
 // ===== MARKET CONTEXT =====
 
+/**
+ * Market data context for a token pair
+ * Fetched from DeFiLlama and used for smart defaults calculation
+ */
 export interface MarketContext {
   input_token: string;
   output_token: string;
@@ -159,6 +189,9 @@ export interface MarketContext {
 
 // ===== CALCULATION PARAMS =====
 
+/**
+ * Input parameters for smart defaults calculation
+ */
 export interface SmartDefaultsParams {
   priority: string;
   risk_tolerance: string;
@@ -169,6 +202,9 @@ export interface SmartDefaultsParams {
   marketData: MarketContext;
 }
 
+/**
+ * Token information from suiClient
+ */
 export interface TokenInfo {
   symbol: string;
   name: string;
@@ -178,6 +214,9 @@ export interface TokenInfo {
 
 // ===== VALIDATION RESULTS =====
 
+/**
+ * Result from intent validation
+ */
 export interface ValidationResult {
   success: boolean;
   valid: boolean;
@@ -191,6 +230,9 @@ export interface ValidationResult {
 
 // ===== INTENT BUILDER RESULT =====
 
+/**
+ * Result from buildSmartIGSIntentTool execution
+ */
 export interface IntentBuilderResult {
   success: boolean;
   intent?: IGSIntent;
