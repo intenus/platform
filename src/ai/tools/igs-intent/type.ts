@@ -3,6 +3,9 @@
  * These types help AI understand and generate compliant IGS Intents
  */
 
+import { DexOverviewResponse } from "@/libs/llama.type";
+import { IGSAmount, IGSIntent, IGSIntentType } from "@intenus/common";
+
 // ===== ANALYSIS TYPES =====
 
 export interface IntentAnalysis {
@@ -40,7 +43,7 @@ export interface IntentAnalysis {
 // ===== SMART DEFAULTS =====
 
 export interface SmartDefaults {
-  intent_type: string;
+  intent_type: IGSIntentType;
   operation_mode: string;
   slippage_bps: number;
   deadline_minutes: number;
@@ -51,7 +54,7 @@ export interface SmartDefaults {
   access_window_ms: number;
   auto_revoke_hours: number;
   should_encrypt: boolean;
-  output_amount: AmountSpec;
+  output_amount: IGSAmount;
   expected_outcome?: string;
   max_gas_cost?: string;
   estimated_gas_range: string;
@@ -163,7 +166,7 @@ export interface SmartDefaultsParams {
   inputToken: TokenInfo;
   outputToken: TokenInfo;
   amount: string;
-  marketData: any;
+  marketData: MarketContext;
 }
 
 export interface TokenInfo {
@@ -178,7 +181,7 @@ export interface TokenInfo {
 export interface ValidationResult {
   success: boolean;
   valid: boolean;
-  intent?: any;
+  intent?: IGSIntent;
   analysis?: IntentAnalysis;
   compliance_score?: number;
   recommendations?: string[];
@@ -190,7 +193,7 @@ export interface ValidationResult {
 
 export interface IntentBuilderResult {
   success: boolean;
-  intent?: any;
+  intent?: IGSIntent;
   smart_choices?: SmartDefaults;
   explanation?: IntentExplanation;
   estimated_performance?: {

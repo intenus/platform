@@ -193,7 +193,7 @@ export function calculateSmartDefaults(params: SmartDefaultsParams): SmartDefaul
 
 // ===== ESTIMATION FUNCTIONS =====
 
-export function generateExpectedOutcome(params: SmartDefaultsParams, marketData: any): string {
+export function generateExpectedOutcome(params: SmartDefaultsParams, marketData: MarketContext): string {
   const { inputToken, outputToken, amount } = params;
   return `Expected to receive ${outputToken.symbol} in exchange for ${amount} ${inputToken.symbol} with optimal routing`;
 }
@@ -221,7 +221,7 @@ export function estimateGasRange(params: SmartDefaultsParams): string {
   return ranges[priority as keyof typeof ranges] || '$0.02-0.08';
 }
 
-export function calculateExecutionProbability(settings: any, marketData: any): number {
+export function calculateExecutionProbability(settings: any, marketData: MarketContext): number {
   // Base probability
   let probability = 85;
 
@@ -467,7 +467,7 @@ export function generateImprovementRecommendations(intent: IGSIntent): string[] 
   return recommendations.length > 0 ? recommendations : ['Intent is well-structured'];
 }
 
-export function generateFixSuggestions(intent: any): string[] {
+export function generateFixSuggestions(intent: IGSIntent): string[] {
   const suggestions: string[] = [];
 
   if (!intent.igs_version) suggestions.push('Add igs_version: "1.0.0"');
