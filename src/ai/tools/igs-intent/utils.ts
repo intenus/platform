@@ -13,48 +13,49 @@ import {
   IntentComparison,
   RoutingConstraints,
 } from './type';
-import { getMarketPriceTool, getMarketOverviewTool } from '../market/market-tools';
+import { llama } from '@/libs/llamaClient';
+import { getTokenPriceId } from '@/libs/suiClient';
+import { Chain } from '@/libs/llama.type';
+import { summarizeMarketData, getRecommendedProtocols } from '../market/utils';
 
 // ===== MARKET DATA INTEGRATION =====
 
 /**
  * Get market context for a token pair
- * Integrates with market tools to provide real-time data
+ * Uses llamaClient directly (NOT tools - tools are for UI only)
  */
 export async function getMarketContextForPair(
   inputSymbol: string,
   outputSymbol: string
 ): Promise<MarketContext | null> {
   try {
-    // Fetch prices
-    const priceResult = await getMarketPriceTool.execute({
-      tokens: [inputSymbol, outputSymbol],
-    });
+    // Fetch prices using llamaClient directly
+    const inputPriceId = getTokenPriceId(inputSymbol);
+    const outputPriceId = getTokenPriceId(outputSymbol);
 
-    // Fetch market overview for liquidity info
-    const overviewResult = await getMarketOverviewTool.execute({
-      intent_category: 'swap',
-      asset_focus: 'all_assets',
-      optimization_priority: 'balanced',
-    });
-
-    if (!priceResult.success || !overviewResult.success) {
+    if (!inputPriceId || !outputPriceId) {
       return null;
     }
 
-    const inputPrice = priceResult.prices?.[inputSymbol]?.price;
-    const outputPrice = priceResult.prices?.[outputSymbol]?.price;
+    const prices = await llama.getTokenPricesByIds([inputPriceId, outputPriceId]);
+
+    // Fetch DEX overview for liquidity
+    const dexOverview = await llama.getDexOverview(Chain.Sui);
+    const marketSummary = summarizeMarketData(dexOverview);
+
+    const inputPrice = prices[inputPriceId]?.price;
+    const outputPrice = prices[outputPriceId]?.price;
 
     return {
       input_token: inputSymbol,
       output_token: outputSymbol,
       current_price: inputPrice && outputPrice ? inputPrice / outputPrice : undefined,
-      liquidity_depth: overviewResult.overview?.liquidity_assessment || 'unknown',
+      liquidity_depth: marketSummary.liquidity_assessment || 'unknown',
       typical_slippage: '0.3-1%',
-      recommended_protocols: overviewResult.intent_insights?.recommended_protocols || [],
-      market_volatility: Math.abs(overviewResult.overview?.key_metrics?.volume_change_24h || 0) > 10
+      recommended_protocols: getRecommendedProtocols('swap', 'medium', 'balanced'),
+      market_volatility: Math.abs(marketSummary.key_metrics.volume_change_24h || 0) > 10
         ? 'high'
-        : Math.abs(overviewResult.overview?.key_metrics?.volume_change_24h || 0) > 5
+        : Math.abs(marketSummary.key_metrics.volume_change_24h || 0) > 5
         ? 'medium'
         : 'low',
     };
