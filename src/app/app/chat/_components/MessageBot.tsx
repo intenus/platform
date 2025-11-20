@@ -1,11 +1,11 @@
 "use client";
 
-import { Favicon } from "@/components/global/brands";
-import { CustomUIMessage } from "@/types/ai";
-import { Box, BoxProps, HStack, Text, Badge, VStack, Card, Separator } from "@chakra-ui/react";
-import type { ChatStatus, TextUIPart } from "ai";
-import { motion, AnimatePresence } from "framer-motion";
 import { useMemo } from "react";
+import { Box, BoxProps, HStack, Text, Badge, VStack, Card, Separator } from "@chakra-ui/react";
+import type { ChatStatus, TextUIPart, ToolCallPart, ToolResultPart } from "ai";
+import { motion, AnimatePresence } from "framer-motion";
+import { CustomUIMessage } from "@/types/ai";
+import { Favicon } from "@/components/global/brands";
 
 interface MessageBotProps extends BoxProps {
   message: CustomUIMessage;
@@ -106,16 +106,7 @@ function TextPart({
   );
 }
 
-function ToolCallPart({ part }: { part: any }) {
-  const getToolIcon = (toolName: string) => {
-    if (toolName.includes("Price")) return "💰";
-    if (toolName.includes("Balance")) return "👤";
-    if (toolName.includes("Swap") || toolName.includes("Intent")) return "🔄";
-    if (toolName.includes("submit")) return "🚀";
-    if (toolName.includes("Token")) return "🪙";
-    return "🔧";
-  };
-
+function ToolCallPart({ part }: { part: ToolCallPart }) {
   const toolName = part.toolName || "Tool";
 
   return (
@@ -131,14 +122,14 @@ function ToolCallPart({ part }: { part: any }) {
         py={1}
         borderRadius="md"
       >
-        {getToolIcon(toolName)} {toolName}
+        {toolName}
       </Badge>
     </motion.div>
   );
 }
 
-function ToolResultPart({ part }: { part: any }) {
-  const result = part.result || {};
+function ToolResultPart({ part }: { part: ToolResultPart }) {
+  const result = part.output || {};
   const toolName = part.toolName || "";
 
   // Error handling

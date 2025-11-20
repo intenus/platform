@@ -11,12 +11,13 @@ import {
   VStack,
   chakra,
 } from "@chakra-ui/react";
-import { ChangeEvent } from "react";
+import { ChangeEvent, FormEvent, KeyboardEvent } from "react";
 
 interface MessageInputProps extends Omit<HTMLChakraProps<"form">, "onChange"> {
   sendButtonProps?: ButtonProps;
   value?: string;
   onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+  onSubmit?: () => void;
   disabled?: boolean;
 }
 
@@ -24,11 +25,28 @@ export function MessageInput({
   sendButtonProps,
   value,
   onChange,
+  onSubmit,
   disabled,
   ...props
 }: MessageInputProps) {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!disabled && value?.trim() && onSubmit) {
+      onSubmit();
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (!disabled && value?.trim() && onSubmit) {
+        onSubmit();
+      }
+    }
+  };
+
   return (
-    <chakra.form w={"full"} {...props}>
+    <chakra.form w={"full"} onSubmit={handleSubmit} {...props}>
       <VStack
         w={"full"}
         p={"2"}
@@ -36,7 +54,7 @@ export function MessageInput({
         bg={"bg.subtle/25"}
         shadow={"xs"}
       >
-        <Box p={"2"} w={"full"} rounded={["3xl", "4xl"]} bg={"bg.subtle/50"}>
+        <Box p={"2"} w={"full"} rounded={["2xl", "3xl"]} bg={"bg.subtle/50"}>
           <Textarea
             w={"full"}
             maxHeight={"2xs"}
@@ -47,6 +65,7 @@ export function MessageInput({
             placeholder="Type your intent..."
             value={value}
             onChange={onChange}
+            onKeyDown={handleKeyDown}
             disabled={disabled}
           />
           <HStack w={"full"} p={"2"} justify={"end"}>
