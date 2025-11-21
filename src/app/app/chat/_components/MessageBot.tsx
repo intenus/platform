@@ -59,7 +59,7 @@ export function MessageBot({ message, status, ...props }: MessageBotProps) {
                       }
                     />
                   );
-                case "tool-checkWalletConnection":
+                case "tool-checkWalletConnectionTool":
                   if (!part.output?.connected) {
                     return <ConnectButton key={index} />;
                   }

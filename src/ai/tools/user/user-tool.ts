@@ -2,7 +2,7 @@ import { tool } from "ai";
 import z from "zod";
 import { normalizeSuiAddress, isValidSuiAddress } from "@mysten/sui/utils";
 
-export const checkWalletConnection = tool({
+export const checkWalletConnectionTool = tool({
   description:
     "Check if the user has connected their wallet and retrieve the wallet address.",
   inputSchema: z.object({}),
@@ -14,11 +14,6 @@ export const checkWalletConnection = tool({
       .string()
       .nullable()
       .describe("The user's wallet address, or null if not connected")
-      .transform((address) =>
-        address && isValidSuiAddress(address)
-          ? normalizeSuiAddress(address)
-          : address
-      ),
   }),
 });
 
@@ -43,7 +38,6 @@ export const getUserBalancesTool = tool({
       .refine((address) => isValidSuiAddress(address), {
         message: "Invalid Sui address format",
       })
-      .transform((address) => normalizeSuiAddress(address)),
   }),
   outputSchema: z.any().describe("The user's balance for the specified token"),
 });
@@ -64,8 +58,7 @@ export const getBalanceTool = tool({
       .describe("User Sui wallet address with length 64")
       .refine((address) => isValidSuiAddress(address), {
         message: "Invalid Sui address format",
-      })
-      .transform((address) => normalizeSuiAddress(address)),
+      }),
     coinType: z
       .string()
       .describe(
