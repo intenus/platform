@@ -12,9 +12,11 @@ import {
 
 // IGS Intent tools
 import {
-  analyzeIntent,
-  compareIntents,
-  generateIGSIntent
+  buildOptimalIGSIntentTool,
+  analyzeOptimalIGSIntentTool,
+  compareOptimalIntentsTool,
+  getSupportedTokensTool,
+  quickOptimalTemplateTool
 } from "@/ai/tools/igs-intent/igs-intent-tools";
 
 // Server tools (stub)
@@ -47,9 +49,11 @@ ${LLAMA_API_CONTEXT}
         checkWalletConnection,
 
         // Intent building
-        generateIGSIntent,
-        analyzeIntent,
-        compareIntents,
+        buildOptimalIGSIntentTool,
+        analyzeOptimalIGSIntentTool,
+        compareOptimalIntentsTool,
+        getSupportedTokensTool,
+        quickOptimalTemplateTool,
 
         // Server integration (stub)
         submitIntentTool,
