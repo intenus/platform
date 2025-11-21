@@ -9,8 +9,6 @@ import { submitIntentTool } from "./server-tools";
 // IGS Intent Tools
 import {
   getSupportedTokensTool,
-  getUserBalanceTool,
-  createSwapIntentTool,
   buildSmartIGSIntentTool,
   validateIGSIntentTool,
   compareIGSIntentsTool,
@@ -22,25 +20,35 @@ import {
   getMarketPriceTool,
   getDEXProtocolInfoTool,
 } from "./market/market-tools";
+import {
+    checkWalletConnection,
+    getBalanceTool,
+    getUserBalancesTool,
+} from "./user/user-tool";
 
 /**
  * Complete toolset for AI-powered IGS Intent generation
  *
  * Tool Categories:
- * 1. Token & Balance: getSupportedTokensTool, getUserBalanceTool
- * 2. Intent Creation: createSwapIntentTool, buildSmartIGSIntentTool (RECOMMENDED)
- * 3. Intent Validation: validateIGSIntentTool, compareIGSIntentsTool
- * 4. Market Data: getMarketPriceTool, getDEXProtocolInfoTool, getMarketOverviewTool
- * 5. Intent Submission: submitIntentTool
+ * 1. User: checkWalletConnection, getUserBalanceTool
+ * 2. Intent Creation: buildSmartIGSIntentTool (RECOMMENDED)
+ * 3. Token: getSupportedTokensTool
+ * 4. Validation & Analysis: validateIGSIntentTool, compareIGSIntentsTool
+ * 5. Market Data: getMarketPriceTool, getDEXProtocolInfoTool, getMarketOverviewTool
+ * 6. Intent Submission: submitIntentTool
  */
 export const tools = {
-  // === Intent Creation (Primary) ===
-  buildSmartIGSIntentTool,        // MAIN TOOL - AI-optimized intent builder
-  createSwapIntentTool,            // Simple swap intent
+  // === User ===
+  checkWalletConnection,
+  getUserBalancesTool,
+  getBalanceTool,
 
-  // === Token & Balance ===
+  // === Intent Creation (Primary) ===
+  buildSmartIGSIntentTool,
+
+  // === Token ===
   getSupportedTokensTool,
-  getUserBalanceTool,
+  
 
   // === Validation & Analysis ===
   validateIGSIntentTool,

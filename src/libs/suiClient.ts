@@ -3,16 +3,13 @@
  * IMPORTANT: Use native SDK methods when possible, avoid reimplementing
  */
 
-import { SuiClient } from '@mysten/sui/client';
-import { normalizeSuiAddress, isValidSuiAddress } from '@mysten/sui/utils';
+import { NETWORK } from '@/utils/constants';
+import { getFullnodeUrl, SuiClient } from '@mysten/sui/client';
 
 // Initialize Sui client
-const RPC_URL = process.env.NEXT_PUBLIC_SUI_RPC_URL || 'https://fullnode.mainnet.sui.io:443';
+const RPC_URL = process.env.NEXT_PUBLIC_SUI_RPC_URL || getFullnodeUrl(NETWORK as "mainnet" | "testnet" | "devnet" | "localnet");
 
 export const sui = new SuiClient({ url: RPC_URL });
-
-// Re-export utils from SDK
-export { normalizeSuiAddress, isValidSuiAddress };
 
 /**
  * Popular tokens on Sui (focus on swap pairs)
@@ -29,7 +26,7 @@ export const POPULAR_TOKENS = {
     priceId: 'coingecko:sui', // Primary price source
   },
   WALRUS: {
-    symbol: 'WALRUS',
+    symbol: 'WAL',
     coinType: '0x356a26eb9e012a68958082340d4c4116e7f55615cf27affcff209cf0ae544f59::wal::WAL',
     decimals: 9,
     name: 'Walrus',
@@ -87,120 +84,4 @@ export function getPopularTokens(): TokenInfo[] {
 export function getTokenPriceId(symbol: string): string | undefined {
   const token = getTokenInfo(symbol);
   return token?.priceId;
-}
-
-/**
- * Parse token amount to smallest unit
- */
-export function parseTokenAmount(amount: string, decimals: number): string {
-  const value = parseFloat(amount);
-  if (isNaN(value) || value < 0) {
-    throw new Error(`Invalid amount: ${amount}`);
-  }
-  return BigInt(Math.floor(value * Math.pow(10, decimals))).toString();
-}
-
-/**
- * Format token amount from smallest unit
- */
-export function formatTokenAmount(amount: string | bigint, decimals: number): string {
-  const value = typeof amount === 'string' ? BigInt(amount) : amount;
-  const divisor = BigInt(Math.pow(10, decimals));
-  const whole = value / divisor;
-  const fraction = value % divisor;
-
-  if (fraction === BigInt(0)) {
-    return whole.toString();
-  }
-
-  const fractionStr = fraction.toString().padStart(decimals, '0');
-  return `${whole}.${fractionStr}`.replace(/\.?0+$/, '');
-}
-
-/**
- * Get user balance for a specific coin type
- */
-export async function getBalance(address: string, coinType: string): Promise<{
-  balance: string;
-  balanceFormatted: string;
-  coinType: string;
-}> {
-  if (!isValidSuiAddress(address)) {
-    throw new Error('Invalid Sui address');
-  }
-
-  const normalized = normalizeSuiAddress(address);
-  const balance = await sui.getBalance({
-    owner: normalized,
-    coinType,
-  });
-
-  const token = Object.values(POPULAR_TOKENS).find(t => t.coinType === coinType);
-  const decimals = token?.decimals || 9;
-
-  return {
-    balance: balance.totalBalance,
-    balanceFormatted: formatTokenAmount(balance.totalBalance, decimals),
-    coinType,
-  };
-}
-
-/**
- * Get all balances for user (only popular tokens)
- */
-export async function getAllBalances(address: string): Promise<Array<{
-  symbol: string;
-  balance: string;
-  balanceFormatted: string;
-  coinType: string;
-  decimals: number;
-}>> {
-  if (!isValidSuiAddress(address)) {
-    throw new Error('Invalid Sui address');
-  }
-
-  const normalized = normalizeSuiAddress(address);
-  const tokens = getPopularTokens();
-
-  const balances = await Promise.all(
-    tokens.map(async (token) => {
-      try {
-        const balance = await sui.getBalance({
-          owner: normalized,
-          coinType: token.coinType,
-        });
-
-        return {
-          symbol: token.symbol,
-          balance: balance.totalBalance,
-          balanceFormatted: formatTokenAmount(balance.totalBalance, token.decimals),
-          coinType: token.coinType,
-          decimals: token.decimals,
-        };
-      } catch (error) {
-        // Return 0 balance on error
-        return {
-          symbol: token.symbol,
-          balance: '0',
-          balanceFormatted: '0',
-          coinType: token.coinType,
-          decimals: token.decimals,
-        };
-      }
-    })
-  );
-
-  return balances.filter(b => parseFloat(b.balanceFormatted) > 0);
-}
-
-/**
- * Check if user has sufficient balance
- */
-export async function hasSufficientBalance(
-  address: string,
-  coinType: string,
-  requiredAmount: string
-): Promise<boolean> {
-  const { balance } = await getBalance(address, coinType);
-  return BigInt(balance) >= BigInt(requiredAmount);
 }
