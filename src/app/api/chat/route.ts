@@ -21,7 +21,7 @@ import {
 
 // Server tools (stub)
 import { submitIntentTool } from "@/ai/tools/server-tools";
-import { checkWalletConnection } from "@/ai/tools/user/user-tool";
+import { checkWalletConnection, getUserBalancesTool,getBalanceTool } from "@/ai/tools/user/user-tool";
 
 export const maxDuration = 30;
 
@@ -47,6 +47,9 @@ ${LLAMA_API_CONTEXT}
 
         // User data
         checkWalletConnection,
+        getUserBalancesTool,
+        getBalanceTool,
+
 
         // Intent building
         buildOptimalIGSIntentTool,
