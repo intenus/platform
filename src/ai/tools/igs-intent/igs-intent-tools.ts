@@ -428,42 +428,42 @@ export const quickOptimalTemplateTool = tool({
 // UTILITY FUNCTIONS
 // ============================================================================
 
-function generateRecommendations(analysis: any): string[] {
+function generateRecommendations(analysis: ReturnType<typeof analyzeOptimalIntent>): string[] {
   const recommendations: string[] = [];
-  
+
   if (analysis.executionProbability < 80) {
     recommendations.push("Consider increasing slippage tolerance or deadline for better execution probability");
   }
-  
+
   if (analysis.risks.includes("TEE requirement reduces solver pool")) {
     recommendations.push("TEE requirement limits solvers - consider if maximum security is necessary");
   }
-  
+
   if (analysis.constraints.slippageBps > 300) {
     recommendations.push("High slippage tolerance - you might get worse prices than expected");
   }
-  
+
   if (analysis.complexity === 'complex') {
     recommendations.push("Complex intent may have higher gas costs and execution risks");
   }
-  
+
   return recommendations.length > 0 ? recommendations : ["Intent is well-optimized"];
 }
 
-function getComplexityRange(comparison: any[]): string {
+function getComplexityRange(comparison: ReturnType<typeof compareOptimalIntents>): string {
   const complexities = comparison.map(c => c.complexity);
   const unique = [...new Set(complexities)];
   return unique.join(' to ');
 }
 
-function getGasRange(comparison: any[]): string {
+function getGasRange(comparison: ReturnType<typeof compareOptimalIntents>): string {
   const gases = comparison.map(c => parseFloat(c.estimatedGas.replace('$', '')));
   const min = Math.min(...gases);
   const max = Math.max(...gases);
   return `$${min.toFixed(3)}-$${max.toFixed(3)}`;
 }
 
-function getProbabilityRange(comparison: any[]): string {
+function getProbabilityRange(comparison: ReturnType<typeof compareOptimalIntents>): string {
   const probs = comparison.map(c => parseInt(c.executionProbability.replace('%', '')));
   const min = Math.min(...probs);
   const max = Math.max(...probs);

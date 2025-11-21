@@ -7,9 +7,9 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { llama } from "@/libs/llamaClient";
-import { getTokenInfo, getTokenPriceId } from "@/libs/suiClient";
+import { getTokenPriceId } from "@/libs/suiClient";
 import { calculateExpectedPerformance, generateOptimizationTips, getRecommendedProtocols, identifyRiskFactors, summarizeMarketData } from "./utils";
-import { Category, Chain, DexOverviewResponse } from "@/libs/llama.type";
+import { Category, Chain } from "@/libs/llama.type";
 
 /**
  * Get current market prices for tokens
@@ -173,10 +173,11 @@ export const getMarketOverviewTool = tool({
       'balanced'        // Balance all factors
     ]).optional().describe("Primary optimization goal for recommendations")
   }),
-  
+
   execute: async ({
     intent_category = 'general',
-    trade_size_category = 'any', 
+    trade_size_category = 'any',
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     asset_focus = 'all_assets',
     optimization_priority = 'balanced'
   }) => {
