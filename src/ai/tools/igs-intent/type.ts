@@ -11,7 +11,7 @@
  * - Intent comparison and explanation
  */
 
-import { IGSAmount, IGSIntent, IGSIntentType } from "@intenus/common";
+import { IGSAmount, IGSIntent } from "@intenus/common";
 
 // ===== ANALYSIS TYPES =====
 

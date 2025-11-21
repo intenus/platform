@@ -1,41 +1,29 @@
 /**
- * IGS Intent Tools for AI SDK
- * These tools help AI generate compliant IGS Intents that work seamlessly
- * with market data and user preferences
+ * Final IGS Intent Tools for AI SDK - Optimal Implementation
+ * Wraps optimal utilities with clean AI SDK tool interface
  */
 
 import { tool } from 'ai';
 import { z } from 'zod';
-import { IGSIntent, IGSIntentSchema, IntentBuilder } from '@intenus/common';
+import { IGSIntentSchema } from '@intenus/common';
 import {
-  getTokenInfo,
-  parseTokenAmount,
-  getAllBalances,
-  isValidSuiAddress,
-  normalizeSuiAddress,
-  getPopularTokens,
-} from '@/libs/suiClient';
-import {
-  calculateSmartDefaults,
-  getMarketContextForPair,
-  generateIntentExplanation,
-  analyzeIGSIntent,
-  calculateComplianceScore,
-  generateImprovementRecommendations,
-  generateFixSuggestions,
-  generateIntentComparison,
+  generateOptimalIntent,
+  analyzeOptimalIntent,
+  compareOptimalIntents,
+  IntentGenerationInput,
+  ValidationResult,
+  MarketContext
 } from './utils';
-import { SmartDefaultsParams } from './type';
+import { getTokenInfo, getPopularTokens } from '@/libs/suiClient';
+import { isValidSuiAddress, normalizeSuiAddress } from '@mysten/sui/utils';
 
-// ===== TOKEN & BALANCE TOOLS =====
+// ============================================================================
+// TOKEN SUPPORT TOOL
+// ============================================================================
 
-/**
- * Get list of supported tokens
- * Use when user asks "what tokens can I swap?"
- */
 export const getSupportedTokensTool = tool({
   description: `
-    Get list of all supported tokens on Sui blockchain for DeFi operations.
+    Get list of supported tokens on Sui blockchain for DeFi operations.
     Returns token symbols, names, and decimals. Use this when:
     - User asks "what tokens can I trade?"
     - You need to validate if a token is supported
@@ -50,313 +38,87 @@ export const getSupportedTokensTool = tool({
         symbol: t.symbol,
         name: t.name,
         decimals: t.decimals,
+        coinType: t.coinType
       })),
       message: `Found ${tokens.length} supported tokens: ${tokens.map(t => t.symbol).join(', ')}`,
     };
   },
 });
 
-/**
- * Check user's token balances
- * Use before creating swap intent to verify user has sufficient funds
- */
-export const getUserBalanceTool = tool({
+// ============================================================================
+// MAIN OPTIMAL INTENT GENERATION TOOL
+// ============================================================================
+
+export const buildOptimalIGSIntentTool = tool({
   description: `
-    Check user's token balances on Sui blockchain for all supported tokens.
-    ALWAYS use this tool before creating a swap intent to:
-    - Verify user has sufficient balance for the swap
-    - Suggest appropriate swap amounts based on available balance
-    - Avoid creating intents that will fail due to insufficient funds
-  `,
-  inputSchema: z.object({
-    user_address: z.string().describe('User Sui wallet address (0x... format)'),
-  }),
-  execute: async ({ user_address }) => {
-    try {
-      if (!isValidSuiAddress(user_address)) {
-        return {
-          success: false,
-          error: 'Invalid Sui address format. Must be 0x followed by 64 hex characters.',
-        };
-      }
+    **MAIN INTENT GENERATION TOOL - Optimal Implementation**
 
-      const normalized = normalizeSuiAddress(user_address);
-      const balances = await getAllBalances(normalized);
+    Generate IGS Intent with optimal balance of SDK compliance and smart features.
+    This tool combines:
+    - Strict SDK type compliance (no drift, no loops)
+    - Smart parameter calculation based on priority, risk, urgency
+    - Market-aware adjustments (when data available)
+    - Built-in validation and error handling
 
-      return {
-        success: true,
-        address: normalized,
-        balances: balances.map((b) => ({
-          symbol: b.symbol,
-          balance: b.balanceFormatted,
-          decimals: b.decimals,
-          coinType: b.coinType,
-        })),
-        summary: `User has ${balances.length} token(s) with non-zero balance`,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to fetch balance',
-      };
-    }
-  },
-});
+    Features:
+    - 4 clear priorities: speed, price, gas, safety
+    - 3 risk levels: low, medium, high
+    - 3 urgency levels: low, normal, urgent
+    - Automatic parameter optimization
+    - Protocol preference/blacklist support
 
-// ===== SIMPLE SWAP INTENT TOOL =====
-
-/**
- * Create simple swap intent (beginner-friendly)
- * Use for straightforward swaps when user provides clear parameters
- */
-export const createSwapIntentTool = tool({
-  description: `
-    Create basic swap intent with user-provided parameters.
-    Use this when:
-    - User provides exact input/output amounts and tokens
-    - Simple swap without advanced optimization needed
-    - Teaching/demonstrating intent creation
-
-    For smart, optimized intents use buildSmartIGSIntentTool instead.
-  `,
-  inputSchema: z.object({
-    user_address: z.string().describe('User Sui wallet address'),
-    intent_type: z
-      .enum(['swap.exact_input', 'swap.exact_output', 'limit.sell', 'limit.buy'])
-      .describe('Type of swap operation'),
-    input_token: z.string().describe('Input token symbol (SUI, USDC, USDT, WETH, WALRUS)'),
-    input_amount: z.string().describe('Input amount (human readable, e.g. "100" for 100 SUI)'),
-    output_token: z.string().describe('Output token symbol'),
-    output_amount_min: z.string().optional().describe('Minimum output amount (optional)'),
-    slippage_bps: z.number().default(50).describe('Slippage tolerance in basis points (50 = 0.5%)'),
-    deadline_minutes: z.number().default(10).describe('Deadline in minutes'),
-    optimization_goal: z
-      .enum(['balanced', 'maximize_output', 'minimize_gas', 'fastest_execution'])
-      .default('balanced'),
-  }),
-  execute: async (params) => {
-    try {
-      // Validate address
-      if (!isValidSuiAddress(params.user_address)) {
-        return { success: false, error: 'Invalid Sui address format' };
-      }
-
-      // Get token info
-      const inputTokenInfo = getTokenInfo(params.input_token.toUpperCase());
-      const outputTokenInfo = getTokenInfo(params.output_token.toUpperCase());
-
-      if (!inputTokenInfo) {
-        return {
-          success: false,
-          error: `Unsupported input token: ${params.input_token}. Use getSupportedTokensTool to see available tokens.`,
-        };
-      }
-      if (!outputTokenInfo) {
-        return {
-          success: false,
-          error: `Unsupported output token: ${params.output_token}. Use getSupportedTokensTool to see available tokens.`,
-        };
-      }
-
-      const now = Date.now();
-      const normalized = normalizeSuiAddress(params.user_address);
-      const inputAmountRaw = parseTokenAmount(params.input_amount, inputTokenInfo.decimals);
-
-      // Build output amount
-      const buildOutputAmount = () => {
-        if (params.intent_type === 'swap.exact_output' && params.output_amount_min) {
-          const outputAmountRaw = parseTokenAmount(params.output_amount_min, outputTokenInfo.decimals);
-          return { type: 'exact' as const, value: outputAmountRaw };
-        }
-        if (params.output_amount_min) {
-          const minOutputRaw = parseTokenAmount(params.output_amount_min, outputTokenInfo.decimals);
-          return { type: 'range' as const, min: minOutputRaw, max: '99999999999999999' };
-        }
-        return { type: 'all' as const };
-      };
-
-      // Get operation mode
-      const getOperationMode = () => {
-        switch (params.intent_type) {
-          case 'swap.exact_input':
-            return 'exact_input';
-          case 'swap.exact_output':
-            return 'exact_output';
-          case 'limit.sell':
-          case 'limit.buy':
-            return 'limit_order';
-          default:
-            return 'exact_input';
-        }
-      };
-
-      // Build IGS Intent
-      const igsIntent: IGSIntent = {
-        igs_version: '1.0.0',
-        object: {
-          user_address: normalized,
-          created_ts: now,
-          policy: {
-            solver_access_window: {
-              start_ms: now,
-              end_ms: now + params.deadline_minutes * 60 * 1000,
-            },
-            auto_revoke_time: 3600,
-            access_condition: {
-              requires_solver_registration: true,
-              min_solver_stake: '100000000',
-              requires_tee_attestation: false,
-              expected_measurement: 'none',
-              purpose: `${params.intent_type} - ${params.input_token} to ${params.output_token}`,
-            },
-          },
-        },
-        user_address: normalized,
-        intent_type: params.intent_type,
-        operation: {
-          mode: getOperationMode(),
-          inputs: [
-            {
-              asset_id: inputTokenInfo.coinType,
-              asset_info: {
-                symbol: inputTokenInfo.symbol,
-                decimals: inputTokenInfo.decimals,
-                name: inputTokenInfo.name,
-              },
-              amount: { type: 'exact' as const, value: inputAmountRaw },
-            },
-          ],
-          outputs: [
-            {
-              asset_id: outputTokenInfo.coinType,
-              asset_info: {
-                symbol: outputTokenInfo.symbol,
-                decimals: outputTokenInfo.decimals,
-                name: outputTokenInfo.name,
-              },
-              amount: buildOutputAmount(),
-            },
-          ],
-        },
-        constraints: {
-          max_slippage_bps: params.slippage_bps,
-          deadline_ms: now + params.deadline_minutes * 60 * 1000,
-        },
-        preferences: {
-          optimization_goal: params.optimization_goal,
-          ranking_weights: {
-            surplus_weight: params.optimization_goal === 'maximize_output' ? 0.6 : 0.25,
-            gas_cost_weight: params.optimization_goal === 'minimize_gas' ? 0.6 : 0.25,
-            execution_speed_weight: params.optimization_goal === 'fastest_execution' ? 0.6 : 0.25,
-            reputation_weight: 0.25,
-          },
-        },
-      };
-
-      // Validate with IntentBuilder
-      const builder = new IntentBuilder(igsIntent);
-      const validated = builder.build();
-
-      return {
-        success: true,
-        intent: validated,
-        summary: {
-          type: params.intent_type,
-          from: `${params.input_amount} ${params.input_token.toUpperCase()}`,
-          to: params.output_token.toUpperCase(),
-          slippage: `${params.slippage_bps / 100}%`,
-          deadline: `${params.deadline_minutes} minutes`,
-        },
-        message: `Created ${params.intent_type} intent: ${params.input_amount} ${params.input_token} → ${params.output_token}`,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to create intent',
-      };
-    }
-  },
-});
-
-// ===== SMART INTENT BUILDER (RECOMMENDED) =====
-
-/**
- * Build optimized IGS Intent with AI assistance
- * This is the MAIN tool for creating intents - it's smart and context-aware
- */
-export const buildSmartIGSIntentTool = tool({
-  description: `
-    **PRIMARY INTENT CREATION TOOL - Use this for most intent generation!**
-
-    Build sophisticated, optimized IGS Intent with smart defaults and market awareness.
-    This tool:
-    - Automatically fetches current market data
-    - Optimizes parameters based on user goals (best price, low gas, speed, safety)
-    - Adjusts for risk tolerance and urgency
-    - Provides detailed explanations of all choices made
-    - Integrates with market tools for real-time recommendations
-
-    Use this when:
-    - User wants to swap tokens (this is the default choice)
-    - You need intelligent parameter optimization
-    - Market conditions should influence the intent
-    - User mentions goals like "best price", "fastest", "safest", "cheapest"
-
-    The tool automatically:
-    ✓ Fetches current market prices and liquidity
-    ✓ Recommends optimal protocols based on conditions
-    ✓ Calculates smart slippage and deadline values
-    ✓ Estimates gas costs and execution probability
-    ✓ Provides full explanation of all decisions
+    Use this for all IGS intent generation needs.
   `,
   inputSchema: z.object({
     // Core requirements
     user_address: z.string().describe("User's Sui wallet address (0x...)"),
     intent_description: z
       .string()
-      .describe('Natural language description of what user wants (e.g., "swap 100 SUI for USDC")'),
+      .describe('Natural language description of what user wants'),
 
-    // Asset specifications
-    input_asset: z.string().describe('Input token symbol (SUI, USDC, USDT, WETH, WALRUS)'),
-    input_amount: z.string().describe('Amount to swap/trade (human readable number)'),
-    output_asset: z.string().describe('Desired output token symbol'),
+    // Asset specifications  
+    input_asset: z.string().describe('Input token symbol (SUI, USDC, USDT, WETH)'),
+    input_amount: z.string().describe('Amount to swap (human readable with decimals)'),
+    output_asset: z.string().describe('Output token symbol'),
 
-    // User preferences (AI helps choose optimal values)
+    // Smart preferences
     priority: z
-      .enum(['maximize_output', 'minimize_gas', 'fastest_execution', 'balanced', 'maximum_safety'])
-      .default('balanced')
-      .describe("User's primary goal - drives all optimization decisions"),
-
+      .enum(['speed', 'price', 'gas', 'safety'])
+      .default('price')
+      .describe('Primary optimization goal'),
+    
     risk_tolerance: z
       .enum(['low', 'medium', 'high'])
       .default('medium')
       .describe('Risk tolerance: low=conservative, high=aggressive'),
-
+      
     urgency: z
       .enum(['low', 'normal', 'urgent'])
       .default('normal')
-      .describe('How quickly intent needs to execute'),
+      .describe('Execution urgency'),
 
-    // Advanced options (optional)
-    custom_slippage_bps: z.number().optional().describe('Override smart slippage calculation'),
-    deadline_minutes: z.number().optional().describe('Override smart deadline calculation'),
-    protocol_preferences: z.array(z.string()).optional().describe('Preferred DEXs (Cetus, Turbos, etc)'),
-    protocol_blacklist: z.array(z.string()).optional().describe('DEXs to avoid'),
+    // Optional overrides
+    custom_slippage_bps: z.number().optional().describe('Override calculated slippage (basis points)'),
+    custom_deadline_minutes: z.number().optional().describe('Override calculated deadline (minutes)'),
+    protocol_preferences: z.array(z.string()).optional().describe('Preferred DEX protocols'),
+    protocol_blacklist: z.array(z.string()).optional().describe('Protocols to avoid'),
 
-    // Market integration
-    use_market_data: z
-      .boolean()
-      .default(true)
-      .describe('Whether to fetch and use current market data for optimization'),
+    // Market context (optional)
+    market_volatility: z.enum(['low', 'medium', 'high']).optional().describe('Current market volatility'),
+    liquidity_depth: z.enum(['excellent', 'good', 'adequate', 'low']).optional().describe('Token pair liquidity'),
   }),
 
   execute: async (params) => {
     try {
-      // 1. Validate inputs
+      // 1. Validate address
       if (!isValidSuiAddress(params.user_address)) {
-        return { success: false, error: 'Invalid Sui address format (must be 0x followed by 64 hex chars)' };
+        return {
+          success: false,
+          error: 'Invalid Sui address format (must start with 0x)',
+        };
       }
 
+      // 2. Validate and get tokens
       const inputToken = getTokenInfo(params.input_asset.toUpperCase());
       const outputToken = getTokenInfo(params.output_asset.toUpperCase());
 
@@ -364,244 +126,182 @@ export const buildSmartIGSIntentTool = tool({
         return {
           success: false,
           error: `Unsupported token: ${!inputToken ? params.input_asset : params.output_asset}`,
-          supported_tokens: getPopularTokens().map((t) => t.symbol),
-          suggestion: 'Use getSupportedTokensTool to see all available tokens',
+          supported_tokens: getPopularTokens().map(t => t.symbol),
         };
       }
 
-      // 2. Get market context if needed
-      let marketData = null;
-      if (params.use_market_data) {
-        try {
-          marketData = await getMarketContextForPair(inputToken.symbol, outputToken.symbol);
-          if (marketData) {
-            console.log(`✓ Fetched market data: ${inputToken.symbol}/${outputToken.symbol} - ${marketData.market_volatility} volatility`);
-          }
-        } catch (e) {
-          console.log('⚠ Continuing without market data');
-        }
+      // 3. Parse and validate amount
+      const numAmount = parseFloat(params.input_amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return {
+          success: false,
+          error: `Invalid amount: ${params.input_amount}. Must be positive number.`,
+        };
       }
 
-      // 3. Calculate smart defaults using utility function
-      const smartDefaultsParams: SmartDefaultsParams = {
+      // Convert to raw amount
+      const rawAmount = Math.floor(numAmount * Math.pow(10, inputToken.decimals)).toString();
+
+      // 4. Prepare market context if provided
+      let marketContext: MarketContext | undefined;
+      if (params.market_volatility || params.liquidity_depth) {
+        marketContext = {
+          inputToken: inputToken.symbol,
+          outputToken: outputToken.symbol,
+          volatility: params.market_volatility || 'medium',
+          liquidityDepth: params.liquidity_depth || 'adequate',
+          recommendedProtocols: [] // Could be enhanced with actual recommendations
+        };
+      }
+
+      // 5. Build input for generation
+      const input: IntentGenerationInput = {
+        userAddress: normalizeSuiAddress(params.user_address),
+        inputToken: {
+          assetId: inputToken.coinType,
+          symbol: inputToken.symbol,
+          decimals: inputToken.decimals,
+          amount: rawAmount,
+        },
+        outputToken: {
+          assetId: outputToken.coinType,
+          symbol: outputToken.symbol,
+          decimals: outputToken.decimals,
+        },
         priority: params.priority,
-        risk_tolerance: params.risk_tolerance,
+        riskTolerance: params.risk_tolerance,
         urgency: params.urgency,
-        inputToken,
-        outputToken,
-        amount: params.input_amount,
-        marketData,
-      };  
-
-      const smartDefaults = calculateSmartDefaults(smartDefaultsParams);
-
-      // 4. Build optimized IGS intent
-      const now = Date.now();
-      const normalized = normalizeSuiAddress(params.user_address);
-      const inputAmountRaw = parseTokenAmount(params.input_amount, inputToken.decimals);
-
-      const igsIntent: IGSIntent = {
-        igs_version: '1.0.0',
-
-        object: {
-          user_address: normalized,
-          created_ts: now,
-          policy: {
-            solver_access_window: {
-              start_ms: now,
-              end_ms: now + smartDefaults.access_window_ms,
-            },
-            auto_revoke_time: smartDefaults.auto_revoke_hours * 3600,
-            access_condition: {
-              requires_solver_registration: true,
-              min_solver_stake: smartDefaults.min_solver_stake,
-              requires_tee_attestation: smartDefaults.requires_tee,
-              expected_measurement: smartDefaults.requires_tee ? 'latest' : 'none',
-              purpose: `${params.intent_description} - optimized for ${params.priority}`,
-            },
-          },
-        },
-
-        user_address: normalized,
-        intent_type: smartDefaults.intent_type,
-        description: params.intent_description,
-
-        operation: {
-          mode: smartDefaults.operation_mode,
-          inputs: [
-            {
-              asset_id: inputToken.coinType,
-              asset_info: {
-                symbol: inputToken.symbol,
-                decimals: inputToken.decimals,
-                name: inputToken.name,
-              },
-              amount: { type: 'exact', value: inputAmountRaw },
-            },
-          ],
-          outputs: [
-            {
-              asset_id: outputToken.coinType,
-              asset_info: {
-                symbol: outputToken.symbol,
-                decimals: outputToken.decimals,
-                name: outputToken.name,
-              },
-              amount: smartDefaults.output_amount,
-            },
-          ],
-        },
-
-        constraints: {
-          max_slippage_bps: params.custom_slippage_bps || smartDefaults.slippage_bps,
-          deadline_ms: now + ((params.deadline_minutes || smartDefaults.deadline_minutes) * 60 * 1000),
-          max_gas_cost: smartDefaults.max_gas_cost ? {
-            asset_id: inputToken.coinType,
-            amount: smartDefaults.max_gas_cost
-          } : undefined,
-          routing: {
-            max_hops: smartDefaults.max_hops,
-            whitelist_protocols: params.protocol_preferences,
-            blacklist_protocols: params.protocol_blacklist,
-          },
-        },
-
-        preferences: {
-          optimization_goal: params.priority === 'maximum_safety' ? 'balanced' : params.priority,
-          ranking_weights: smartDefaults.ranking_weights,
-          execution: {
-            mode: 'best_solution',
-            show_top_n: 3,
-          },
-          privacy: {
-            encrypt_intent: smartDefaults.should_encrypt,
-            anonymous_execution: false,
-          },
-        },
-
-        metadata: {
-          original_input: {
-            text: params.intent_description,
-            language: 'en',
-            confidence: 0.95,
-          },
-          client: {
-            name: 'Intenus AI Assistant',
-            version: '1.0.0',
-            platform: 'web',
-          },
-          tags: smartDefaults.tags,
-        },
+        customSlippageBps: params.custom_slippage_bps,
+        customDeadlineMinutes: params.custom_deadline_minutes,
+        protocolPreferences: params.protocol_preferences,
+        protocolBlacklist: params.protocol_blacklist,
       };
 
-      // 5. Validate and build
-      const builder = new IntentBuilder(igsIntent);
-      const validatedIntent = builder.build();
+      // 6. Generate optimal intent
+      const result: ValidationResult = generateOptimalIntent(input, marketContext);
 
-      // 6. Generate explanation using utility function
-      const explanation = generateIntentExplanation(validatedIntent, smartDefaults, {
-        intent_description: params.intent_description,
-        priority: params.priority,
-      });
+      if (!result.valid || !result.intent) {
+        return {
+          success: false,
+          error: 'Intent generation failed',
+          validation_errors: result.errors,
+        };
+      }
+
+      // 7. Analyze the generated intent
+      const analysis = analyzeOptimalIntent(result.intent);
 
       return {
         success: true,
-        intent: validatedIntent,
+        intent: result.intent,
+        analysis: {
+          type: analysis.type,
+          complexity: analysis.complexity,
+          estimated_gas: analysis.estimatedGas,
+          execution_probability: analysis.executionProbability,
+          solver_requirements: analysis.solverRequirements,
+          constraints: analysis.constraints,
+          risks: analysis.risks,
+        },
         smart_choices: {
-          slippage: `${smartDefaults.slippage_bps} bps (${smartDefaults.expected_slippage})`,
-          deadline: `${smartDefaults.deadline_minutes} minutes`,
-          max_hops: smartDefaults.max_hops,
-          solver_requirements: `Min stake: ${smartDefaults.min_solver_stake}, TEE: ${smartDefaults.requires_tee}`,
-          optimization_weights: smartDefaults.ranking_weights,
+          priority: params.priority,
+          risk_tolerance: params.risk_tolerance,
+          urgency: params.urgency,
+          slippage_bps: analysis.constraints.slippageBps,
+          deadline_minutes: analysis.constraints.deadlineMinutes,
+          max_hops: analysis.constraints.maxHops,
+          solver_stake: analysis.solverRequirements.minStake,
+          tee_required: analysis.solverRequirements.requiresTEE,
+          estimated_solver_pool: analysis.solverRequirements.estimatedSolverPool,
         },
-        explanation,
-        market_insights: marketData
-          ? {
-              volatility: marketData.market_volatility,
-              liquidity: marketData.liquidity_depth,
-              recommended_protocols: marketData.recommended_protocols,
-            }
-          : undefined,
-        estimated_performance: {
-          gas_cost_range: smartDefaults.estimated_gas_range,
-          slippage_expected: smartDefaults.expected_slippage,
-          execution_probability: smartDefaults.execution_probability,
-          solver_competition_level: smartDefaults.solver_competition,
-        },
-        message: `✓ Created optimized ${params.priority} intent with ${smartDefaults.execution_probability}% execution probability`,
+        warnings: result.warnings,
+        message: `✓ Generated ${params.priority}-optimized intent: ${params.input_amount} ${params.input_asset} → ${params.output_asset} (${analysis.executionProbability}% execution probability)`,
       };
+
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to build smart intent',
+        error: error instanceof Error ? error.message : 'Unexpected error in intent generation',
       };
     }
   },
 });
 
-// ===== VALIDATION & ANALYSIS TOOLS =====
+// ============================================================================
+// INTENT ANALYSIS TOOL
+// ============================================================================
 
-/**
- * Validate IGS Intent compliance
- * Use to check if an intent follows IGS v1.0.0 standard
- */
-export const validateIGSIntentTool = tool({
+export const analyzeOptimalIGSIntentTool = tool({
   description: `
-    Validate IGS Intent structure and get compliance feedback.
-    Use this to:
-    - Verify an intent is correctly formatted
-    - Get detailed compliance score
-    - Understand what could be improved
-    - Debug intent creation issues
+    Analyze an existing IGS Intent to understand its characteristics and performance.
+    Provides comprehensive analysis including:
+    - Complexity assessment
+    - Gas cost estimates  
+    - Solver requirements and pool size
+    - Execution probability
+    - Risk factors
+    - Constraint analysis
   `,
   inputSchema: z.object({
-    intent: IGSIntentSchema.describe('IGS Intent object to validate'),
-    explain_structure: z
-      .boolean()
-      .default(false)
-      .describe('Whether to provide detailed structural analysis'),
+    intent: IGSIntentSchema.describe('IGS Intent object to analyze'),
   }),
-  execute: async ({ intent, explain_structure }) => {
+  execute: async ({ intent }) => {
     try {
-      // Validate using IntentBuilder
-      const builder = new IntentBuilder(intent);
-      const validatedIntent = builder.build();
-
-      // Analyze intent structure using utility function
-      const analysis = explain_structure ? analyzeIGSIntent(validatedIntent) : undefined;
-
+      const analysis = analyzeOptimalIntent(intent);
+      
       return {
         success: true,
-        valid: true,
-        intent: validatedIntent,
-        analysis,
-        compliance_score: calculateComplianceScore(validatedIntent),
-        recommendations: generateImprovementRecommendations(validatedIntent),
-        message: '✓ Intent is valid and complies with IGS v1.0.0 standard',
+        analysis: {
+          type: analysis.type,
+          complexity: analysis.complexity,
+          estimated_gas: analysis.estimatedGas,
+          execution_probability: analysis.executionProbability,
+          solver_requirements: {
+            min_stake: analysis.solverRequirements.minStake,
+            requires_tee: analysis.solverRequirements.requiresTEE,
+            access_window_hours: analysis.solverRequirements.accessWindowHours,
+            estimated_solver_pool: analysis.solverRequirements.estimatedSolverPool,
+          },
+          constraints: {
+            slippage_bps: analysis.constraints.slippageBps,
+            deadline_minutes: analysis.constraints.deadlineMinutes,
+            max_hops: analysis.constraints.maxHops,
+          },
+          risks: analysis.risks,
+        },
+        summary: {
+          trade_type: intent.intent_type,
+          input_assets: intent.operation.inputs.map(i => i.asset_info?.symbol || 'Unknown'),
+          output_assets: intent.operation.outputs.map(o => o.asset_info?.symbol || 'Unknown'),
+          optimization_goal: intent.preferences?.optimization_goal || 'balanced',
+        },
+        recommendations: generateRecommendations(analysis),
+        message: `Analyzed ${analysis.type} intent - ${analysis.complexity} complexity, ${analysis.executionProbability}% execution probability`,
       };
+
     } catch (error) {
       return {
         success: false,
-        valid: false,
-        error: error instanceof Error ? error.message : 'Validation failed',
-        suggestions: generateFixSuggestions(intent),
+        error: error instanceof Error ? error.message : 'Analysis failed',
       };
     }
   },
 });
 
-/**
- * Compare multiple IGS Intents
- * Use to help users understand trade-offs between different strategies
- */
-export const compareIGSIntentsTool = tool({
+// ============================================================================
+// INTENT COMPARISON TOOL
+// ============================================================================
+
+export const compareOptimalIntentsTool = tool({
   description: `
-    Compare multiple IGS Intents side-by-side to understand trade-offs.
-    Useful for:
-    - Showing different optimization strategies for same goal
-    - Explaining why one approach is better than another
-    - Helping users make informed decisions
-    - Demonstrating impact of different parameters
+    Compare multiple IGS Intents to understand trade-offs and performance differences.
+    Shows side-by-side comparison of:
+    - Slippage tolerances
+    - Deadline constraints  
+    - Gas estimates
+    - Execution probabilities
+    - Complexity levels
+    - TEE requirements
   `,
   inputSchema: z.object({
     intents: z
@@ -609,33 +309,173 @@ export const compareIGSIntentsTool = tool({
       .min(2)
       .max(5)
       .describe('2-5 IGS Intents to compare'),
-    comparison_criteria: z
-      .array(
-        z.enum([
-          'expected_gas_cost',
-          'slippage_tolerance',
-          'execution_speed',
-          'solver_requirements',
-          'success_probability',
-          'privacy_level',
-        ])
-      )
-      .default(['expected_gas_cost', 'slippage_tolerance', 'execution_speed'])
-      .describe('Criteria to compare across intents'),
   }),
-  execute: async ({ intents, comparison_criteria }) => {
+  execute: async ({ intents }) => {
     try {
-      const comparison = generateIntentComparison(intents, comparison_criteria);
+      const comparison = compareOptimalIntents(intents);
+      
+      // Find best performers
+      const bestByGas = comparison.reduce((best, current, index) => {
+        const currentGas = parseFloat(current.estimatedGas.replace('$', ''));
+        const bestGas = parseFloat(comparison[best].estimatedGas.replace('$', ''));
+        return currentGas < bestGas ? index : best;
+      }, 0);
+
+      const bestByProbability = comparison.reduce((best, current, index) => {
+        const currentProb = parseInt(current.executionProbability.replace('%', ''));
+        const bestProb = parseInt(comparison[best].executionProbability.replace('%', ''));
+        return currentProb > bestProb ? index : best;
+      }, 0);
+
       return {
         success: true,
-        comparison,
-        message: `Compared ${intents.length} intents across ${comparison_criteria.length} criteria`,
+        comparison: comparison.map((item, index) => ({
+          intent_index: index,
+          type: item.type,
+          slippage: item.slippage,
+          deadline: item.deadline,
+          complexity: item.complexity,
+          estimated_gas: item.estimatedGas,
+          execution_probability: item.executionProbability,
+          priority: item.priority,
+          requires_tee: item.requiresTEE,
+        })),
+        recommendations: {
+          best_for_gas: bestByGas,
+          best_for_execution_probability: bestByProbability,
+          overall_recommendation: bestByProbability, // Favor execution probability
+        },
+        summary: {
+          total_intents: intents.length,
+          complexity_range: getComplexityRange(comparison),
+          gas_range: getGasRange(comparison),
+          probability_range: getProbabilityRange(comparison),
+        },
+        message: `Compared ${intents.length} intents - Intent #${bestByProbability} recommended for best overall execution`,
       };
+
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to compare intents',
+        error: error instanceof Error ? error.message : 'Comparison failed',
       };
     }
   },
 });
+
+// ============================================================================
+// QUICK TEMPLATE TOOL
+// ============================================================================
+
+export const quickOptimalTemplateTool = tool({
+  description: `
+    Generate IGS Intent from optimized templates for common scenarios.
+    Templates available:
+    - best_price: 30min, 1% slippage, price-optimized
+    - fastest: 5min, 3% slippage, speed-optimized
+    - cheapest_gas: 15min, 2% slippage, gas-optimized  
+    - safest: 60min, 0.5% slippage, TEE required, safety-optimized
+
+    Perfect for quick intent generation.
+  `,
+  inputSchema: z.object({
+    user_address: z.string().describe("User's Sui wallet address"),
+    template: z
+      .enum(['best_price', 'fastest', 'cheapest_gas', 'safest'])
+      .describe('Template type'),
+    input_asset: z.string().describe('Input token symbol'),
+    input_amount: z.string().describe('Amount to swap'),
+    output_asset: z.string().describe('Output token symbol'),
+  }),
+  execute: async (params) => {
+    // Map template to parameters
+    const templateConfig = {
+      best_price: { priority: 'price' as const, risk: 'medium' as const, urgency: 'normal' as const },
+      fastest: { priority: 'speed' as const, risk: 'medium' as const, urgency: 'urgent' as const },
+      cheapest_gas: { priority: 'gas' as const, risk: 'medium' as const, urgency: 'normal' as const },
+      safest: { priority: 'safety' as const, risk: 'low' as const, urgency: 'low' as const },
+    };
+
+    const config = templateConfig[params.template];
+    
+    // Use main tool with template config
+    const mainTool = buildOptimalIGSIntentTool;
+    const result = await mainTool.execute({
+      user_address: params.user_address,
+      intent_description: `${params.template} template for ${params.input_asset} to ${params.output_asset}`,
+      input_asset: params.input_asset,
+      input_amount: params.input_amount,
+      output_asset: params.output_asset,
+      priority: config.priority,
+      risk_tolerance: config.risk,
+      urgency: config.urgency,
+    });
+
+    return {
+      ...result,
+      template_info: {
+        name: params.template,
+        priority: config.priority,
+        risk_tolerance: config.risk,
+        urgency: config.urgency,
+        description: getTemplateDescription(params.template),
+      },
+    };
+  },
+});
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+
+function generateRecommendations(analysis: any): string[] {
+  const recommendations: string[] = [];
+  
+  if (analysis.executionProbability < 80) {
+    recommendations.push("Consider increasing slippage tolerance or deadline for better execution probability");
+  }
+  
+  if (analysis.risks.includes("TEE requirement reduces solver pool")) {
+    recommendations.push("TEE requirement limits solvers - consider if maximum security is necessary");
+  }
+  
+  if (analysis.constraints.slippageBps > 300) {
+    recommendations.push("High slippage tolerance - you might get worse prices than expected");
+  }
+  
+  if (analysis.complexity === 'complex') {
+    recommendations.push("Complex intent may have higher gas costs and execution risks");
+  }
+  
+  return recommendations.length > 0 ? recommendations : ["Intent is well-optimized"];
+}
+
+function getComplexityRange(comparison: any[]): string {
+  const complexities = comparison.map(c => c.complexity);
+  const unique = [...new Set(complexities)];
+  return unique.join(' to ');
+}
+
+function getGasRange(comparison: any[]): string {
+  const gases = comparison.map(c => parseFloat(c.estimatedGas.replace('$', '')));
+  const min = Math.min(...gases);
+  const max = Math.max(...gases);
+  return `$${min.toFixed(3)}-$${max.toFixed(3)}`;
+}
+
+function getProbabilityRange(comparison: any[]): string {
+  const probs = comparison.map(c => parseInt(c.executionProbability.replace('%', '')));
+  const min = Math.min(...probs);
+  const max = Math.max(...probs);
+  return `${min}%-${max}%`;
+}
+
+function getTemplateDescription(template: string): string {
+  const descriptions = {
+    best_price: 'Optimized for maximum output with balanced time and slippage',
+    fastest: 'Optimized for speed with higher slippage tolerance',
+    cheapest_gas: 'Optimized for lowest gas costs with moderate execution time',
+    safest: 'Maximum security with TEE requirements and conservative parameters',
+  };
+  return descriptions[template as keyof typeof descriptions] || 'Standard template';
+}
