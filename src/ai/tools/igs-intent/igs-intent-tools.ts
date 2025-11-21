@@ -3,19 +3,19 @@
  * Wraps optimal utilities with clean AI SDK tool interface
  */
 
-import { tool } from 'ai';
-import { z } from 'zod';
-import { IGSIntentSchema } from '@intenus/common';
+import { tool } from "ai";
+import { z } from "zod";
+import { IGSIntentSchema } from "@intenus/common";
 import {
   generateOptimalIntent,
   analyzeOptimalIntent,
   compareOptimalIntents,
   IntentGenerationInput,
   ValidationResult,
-  MarketContext
-} from './utils';
-import { getTokenInfo, getPopularTokens } from '@/libs/suiClient';
-import { isValidSuiAddress, normalizeSuiAddress } from '@mysten/sui/utils';
+  MarketContext,
+} from "./utils";
+import { getTokenInfo, getPopularTokens } from "@/libs/suiClient";
+import { isValidSuiAddress, normalizeSuiAddress } from "@mysten/sui/utils";
 
 // ============================================================================
 // TOKEN SUPPORT TOOL
@@ -38,9 +38,11 @@ export const getSupportedTokensTool = tool({
         symbol: t.symbol,
         name: t.name,
         decimals: t.decimals,
-        coinType: t.coinType
+        coinType: t.coinType,
       })),
-      message: `Found ${tokens.length} supported tokens: ${tokens.map(t => t.symbol).join(', ')}`,
+      message: `Found ${tokens.length} supported tokens: ${tokens
+        .map((t) => t.symbol)
+        .join(", ")}`,
     };
   },
 });
@@ -74,38 +76,60 @@ export const buildOptimalIGSIntentTool = tool({
     user_address: z.string().describe("User's Sui wallet address (0x...)"),
     intent_description: z
       .string()
-      .describe('Natural language description of what user wants'),
+      .describe("Natural language description of what user wants"),
 
-    // Asset specifications  
-    input_asset: z.string().describe('Input token symbol (SUI, USDC, USDT, WETH)'),
-    input_amount: z.string().describe('Amount to swap (human readable with decimals)'),
-    output_asset: z.string().describe('Output token symbol'),
+    // Asset specifications
+    input_asset: z
+      .string()
+      .describe("Input token symbol (SUI, USDC, USDT, WETH)"),
+    input_amount: z
+      .string()
+      .describe("Amount to swap (human readable with decimals)"),
+    output_asset: z.string().describe("Output token symbol"),
 
     // Smart preferences
     priority: z
-      .enum(['speed', 'price', 'gas', 'safety'])
-      .default('price')
-      .describe('Primary optimization goal'),
-    
+      .enum(["speed", "price", "gas", "safety"])
+      .default("price")
+      .describe("Primary optimization goal"),
+
     risk_tolerance: z
-      .enum(['low', 'medium', 'high'])
-      .default('medium')
-      .describe('Risk tolerance: low=conservative, high=aggressive'),
-      
+      .enum(["low", "medium", "high"])
+      .default("medium")
+      .describe("Risk tolerance: low=conservative, high=aggressive"),
+
     urgency: z
-      .enum(['low', 'normal', 'urgent'])
-      .default('normal')
-      .describe('Execution urgency'),
+      .enum(["low", "normal", "urgent"])
+      .default("normal")
+      .describe("Execution urgency"),
 
     // Optional overrides
-    custom_slippage_bps: z.number().optional().describe('Override calculated slippage (basis points)'),
-    custom_deadline_minutes: z.number().optional().describe('Override calculated deadline (minutes)'),
-    protocol_preferences: z.array(z.string()).optional().describe('Preferred DEX protocols'),
-    protocol_blacklist: z.array(z.string()).optional().describe('Protocols to avoid'),
+    custom_slippage_bps: z
+      .number()
+      .optional()
+      .describe("Override calculated slippage (basis points)"),
+    custom_deadline_minutes: z
+      .number()
+      .optional()
+      .describe("Override calculated deadline (minutes)"),
+    protocol_preferences: z
+      .array(z.string())
+      .optional()
+      .describe("Preferred DEX protocols"),
+    protocol_blacklist: z
+      .array(z.string())
+      .optional()
+      .describe("Protocols to avoid"),
 
     // Market context (optional)
-    market_volatility: z.enum(['low', 'medium', 'high']).optional().describe('Current market volatility'),
-    liquidity_depth: z.enum(['excellent', 'good', 'adequate', 'low']).optional().describe('Token pair liquidity'),
+    market_volatility: z
+      .enum(["low", "medium", "high"])
+      .optional()
+      .describe("Current market volatility"),
+    liquidity_depth: z
+      .enum(["excellent", "good", "adequate", "low"])
+      .optional()
+      .describe("Token pair liquidity"),
   }),
 
   execute: async (params) => {
@@ -114,7 +138,7 @@ export const buildOptimalIGSIntentTool = tool({
       if (!isValidSuiAddress(params.user_address)) {
         return {
           success: false,
-          error: 'Invalid Sui address format (must start with 0x)',
+          error: "Invalid Sui address format (must start with 0x)",
         };
       }
 
@@ -125,8 +149,10 @@ export const buildOptimalIGSIntentTool = tool({
       if (!inputToken || !outputToken) {
         return {
           success: false,
-          error: `Unsupported token: ${!inputToken ? params.input_asset : params.output_asset}`,
-          supported_tokens: getPopularTokens().map(t => t.symbol),
+          error: `Unsupported token: ${
+            !inputToken ? params.input_asset : params.output_asset
+          }`,
+          supported_tokens: getPopularTokens().map((t) => t.symbol),
         };
       }
 
@@ -140,7 +166,9 @@ export const buildOptimalIGSIntentTool = tool({
       }
 
       // Convert to raw amount
-      const rawAmount = Math.floor(numAmount * Math.pow(10, inputToken.decimals)).toString();
+      const rawAmount = Math.floor(
+        numAmount * Math.pow(10, inputToken.decimals)
+      ).toString();
 
       // 4. Prepare market context if provided
       let marketContext: MarketContext | undefined;
@@ -148,9 +176,9 @@ export const buildOptimalIGSIntentTool = tool({
         marketContext = {
           inputToken: inputToken.symbol,
           outputToken: outputToken.symbol,
-          volatility: params.market_volatility || 'medium',
-          liquidityDepth: params.liquidity_depth || 'adequate',
-          recommendedProtocols: [] // Could be enhanced with actual recommendations
+          volatility: params.market_volatility || "medium",
+          liquidityDepth: params.liquidity_depth || "adequate",
+          recommendedProtocols: [], // Could be enhanced with actual recommendations
         };
       }
 
@@ -178,12 +206,15 @@ export const buildOptimalIGSIntentTool = tool({
       };
 
       // 6. Generate optimal intent
-      const result: ValidationResult = generateOptimalIntent(input, marketContext);
+      const result: ValidationResult = generateOptimalIntent(
+        input,
+        marketContext
+      );
 
       if (!result.valid || !result.intent) {
         return {
           success: false,
-          error: 'Intent generation failed',
+          error: "Intent generation failed",
           validation_errors: result.errors,
         };
       }
@@ -212,16 +243,19 @@ export const buildOptimalIGSIntentTool = tool({
           max_hops: analysis.constraints.maxHops,
           solver_stake: analysis.solverRequirements.minStake,
           tee_required: analysis.solverRequirements.requiresTEE,
-          estimated_solver_pool: analysis.solverRequirements.estimatedSolverPool,
+          estimated_solver_pool:
+            analysis.solverRequirements.estimatedSolverPool,
         },
         warnings: result.warnings,
         message: `✓ Generated ${params.priority}-optimized intent: ${params.input_amount} ${params.input_asset} → ${params.output_asset} (${analysis.executionProbability}% execution probability)`,
       };
-
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unexpected error in intent generation',
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unexpected error in intent generation",
       };
     }
   },
@@ -243,12 +277,12 @@ export const analyzeOptimalIGSIntentTool = tool({
     - Constraint analysis
   `,
   inputSchema: z.object({
-    intent: IGSIntentSchema.describe('IGS Intent object to analyze'),
+    intent: IGSIntentSchema.describe("IGS Intent object to analyze"),
   }),
   execute: async ({ intent }) => {
     try {
       const analysis = analyzeOptimalIntent(intent);
-      
+
       return {
         success: true,
         analysis: {
@@ -260,7 +294,8 @@ export const analyzeOptimalIGSIntentTool = tool({
             min_stake: analysis.solverRequirements.minStake,
             requires_tee: analysis.solverRequirements.requiresTEE,
             access_window_hours: analysis.solverRequirements.accessWindowHours,
-            estimated_solver_pool: analysis.solverRequirements.estimatedSolverPool,
+            estimated_solver_pool:
+              analysis.solverRequirements.estimatedSolverPool,
           },
           constraints: {
             slippage_bps: analysis.constraints.slippageBps,
@@ -271,18 +306,22 @@ export const analyzeOptimalIGSIntentTool = tool({
         },
         summary: {
           trade_type: intent.intent_type,
-          input_assets: intent.operation.inputs.map(i => i.asset_info?.symbol || 'Unknown'),
-          output_assets: intent.operation.outputs.map(o => o.asset_info?.symbol || 'Unknown'),
-          optimization_goal: intent.preferences?.optimization_goal || 'balanced',
+          input_assets: intent.operation.inputs.map(
+            (i) => i.asset_info?.symbol || "Unknown"
+          ),
+          output_assets: intent.operation.outputs.map(
+            (o) => o.asset_info?.symbol || "Unknown"
+          ),
+          optimization_goal:
+            intent.preferences?.optimization_goal || "balanced",
         },
         recommendations: generateRecommendations(analysis),
         message: `Analyzed ${analysis.type} intent - ${analysis.complexity} complexity, ${analysis.executionProbability}% execution probability`,
       };
-
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Analysis failed',
+        error: error instanceof Error ? error.message : "Analysis failed",
       };
     }
   },
@@ -308,22 +347,28 @@ export const compareOptimalIntentsTool = tool({
       .array(IGSIntentSchema)
       .min(2)
       .max(5)
-      .describe('2-5 IGS Intents to compare'),
+      .describe("2-5 IGS Intents to compare"),
   }),
   execute: async ({ intents }) => {
     try {
       const comparison = compareOptimalIntents(intents);
-      
+
       // Find best performers
       const bestByGas = comparison.reduce((best, current, index) => {
-        const currentGas = parseFloat(current.estimatedGas.replace('$', ''));
-        const bestGas = parseFloat(comparison[best].estimatedGas.replace('$', ''));
+        const currentGas = parseFloat(current.estimatedGas.replace("$", ""));
+        const bestGas = parseFloat(
+          comparison[best].estimatedGas.replace("$", "")
+        );
         return currentGas < bestGas ? index : best;
       }, 0);
 
       const bestByProbability = comparison.reduce((best, current, index) => {
-        const currentProb = parseInt(current.executionProbability.replace('%', ''));
-        const bestProb = parseInt(comparison[best].executionProbability.replace('%', ''));
+        const currentProb = parseInt(
+          current.executionProbability.replace("%", "")
+        );
+        const bestProb = parseInt(
+          comparison[best].executionProbability.replace("%", "")
+        );
         return currentProb > bestProb ? index : best;
       }, 0);
 
@@ -353,11 +398,10 @@ export const compareOptimalIntentsTool = tool({
         },
         message: `Compared ${intents.length} intents - Intent #${bestByProbability} recommended for best overall execution`,
       };
-
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Comparison failed',
+        error: error instanceof Error ? error.message : "Comparison failed",
       };
     }
   },
@@ -381,26 +425,41 @@ export const quickOptimalTemplateTool = tool({
   inputSchema: z.object({
     user_address: z.string().describe("User's Sui wallet address"),
     template: z
-      .enum(['best_price', 'fastest', 'cheapest_gas', 'safest'])
-      .describe('Template type'),
-    input_asset: z.string().describe('Input token symbol'),
-    input_amount: z.string().describe('Amount to swap'),
-    output_asset: z.string().describe('Output token symbol'),
+      .enum(["best_price", "fastest", "cheapest_gas", "safest"])
+      .describe("Template type"),
+    input_asset: z.string().describe("Input token symbol"),
+    input_amount: z.string().describe("Amount to swap"),
+    output_asset: z.string().describe("Output token symbol"),
   }),
   execute: async (params) => {
     // Map template to parameters
     const templateConfig = {
-      best_price: { priority: 'price' as const, risk: 'medium' as const, urgency: 'normal' as const },
-      fastest: { priority: 'speed' as const, risk: 'medium' as const, urgency: 'urgent' as const },
-      cheapest_gas: { priority: 'gas' as const, risk: 'medium' as const, urgency: 'normal' as const },
-      safest: { priority: 'safety' as const, risk: 'low' as const, urgency: 'low' as const },
+      best_price: {
+        priority: "price" as const,
+        risk: "medium" as const,
+        urgency: "normal" as const,
+      },
+      fastest: {
+        priority: "speed" as const,
+        risk: "medium" as const,
+        urgency: "urgent" as const,
+      },
+      cheapest_gas: {
+        priority: "gas" as const,
+        risk: "medium" as const,
+        urgency: "normal" as const,
+      },
+      safest: {
+        priority: "safety" as const,
+        risk: "low" as const,
+        urgency: "low" as const,
+      },
     };
 
     const config = templateConfig[params.template];
-    
-    // Use main tool with template config
-    const mainTool = buildOptimalIGSIntentTool;
-    const result = await mainTool.execute({
+
+    // Use main tool logic directly instead of calling tool.execute
+    const mainToolParams = {
       user_address: params.user_address,
       intent_description: `${params.template} template for ${params.input_asset} to ${params.output_asset}`,
       input_asset: params.input_asset,
@@ -409,18 +468,132 @@ export const quickOptimalTemplateTool = tool({
       priority: config.priority,
       risk_tolerance: config.risk,
       urgency: config.urgency,
-    });
-
-    return {
-      ...result,
-      template_info: {
-        name: params.template,
-        priority: config.priority,
-        risk_tolerance: config.risk,
-        urgency: config.urgency,
-        description: getTemplateDescription(params.template),
-      },
     };
+
+    // Execute the same logic as buildOptimalIGSIntentTool
+    try {
+      // 1. Validate address
+      if (!isValidSuiAddress(mainToolParams.user_address)) {
+        return {
+          success: false,
+          error: "Invalid Sui address format (must start with 0x)",
+        };
+      }
+
+      // 2. Validate and get tokens
+      const inputToken = getTokenInfo(mainToolParams.input_asset.toUpperCase());
+      const outputToken = getTokenInfo(
+        mainToolParams.output_asset.toUpperCase()
+      );
+
+      if (!inputToken || !outputToken) {
+        return {
+          success: false,
+          error: `Unsupported token: ${
+            !inputToken
+              ? mainToolParams.input_asset
+              : mainToolParams.output_asset
+          }`,
+          supported_tokens: getPopularTokens().map((t) => t.symbol),
+        };
+      }
+
+      // 3. Parse and validate amount
+      const numAmount = parseFloat(mainToolParams.input_amount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        return {
+          success: false,
+          error: `Invalid amount: ${mainToolParams.input_amount}. Must be positive number.`,
+        };
+      }
+
+      // Convert to raw amount
+      const rawAmount = Math.floor(
+        numAmount * Math.pow(10, inputToken.decimals)
+      ).toString();
+
+      // 5. Build input for generation
+      const input: IntentGenerationInput = {
+        userAddress: normalizeSuiAddress(mainToolParams.user_address),
+        inputToken: {
+          assetId: inputToken.coinType,
+          symbol: inputToken.symbol,
+          decimals: inputToken.decimals,
+          amount: rawAmount,
+        },
+        outputToken: {
+          assetId: outputToken.coinType,
+          symbol: outputToken.symbol,
+          decimals: outputToken.decimals,
+        },
+        priority: mainToolParams.priority,
+        riskTolerance: mainToolParams.risk_tolerance,
+        urgency: mainToolParams.urgency,
+      };
+
+      // 6. Generate optimal intent
+      const intentResult: ValidationResult = generateOptimalIntent(input);
+
+      if (!intentResult.valid || !intentResult.intent) {
+        return {
+          success: false,
+          error: "Intent generation failed",
+          validation_errors: intentResult.errors,
+        };
+      }
+
+      // 7. Analyze the generated intent
+      const analysis = analyzeOptimalIntent(intentResult.intent);
+
+      const result = {
+        success: true,
+        intent: intentResult.intent,
+        analysis: {
+          type: analysis.type,
+          complexity: analysis.complexity,
+          estimated_gas: analysis.estimatedGas,
+          execution_probability: analysis.executionProbability,
+          solver_requirements: analysis.solverRequirements,
+          constraints: analysis.constraints,
+          risks: analysis.risks,
+        },
+        smart_choices: {
+          priority: mainToolParams.priority,
+          risk_tolerance: mainToolParams.risk_tolerance,
+          urgency: mainToolParams.urgency,
+          slippage_bps: analysis.constraints.slippageBps,
+          deadline_minutes: analysis.constraints.deadlineMinutes,
+          max_hops: analysis.constraints.maxHops,
+          solver_stake: analysis.solverRequirements.minStake,
+          tee_required: analysis.solverRequirements.requiresTEE,
+          estimated_solver_pool:
+            analysis.solverRequirements.estimatedSolverPool,
+        },
+        warnings: intentResult.warnings,
+        message: `✓ Generated ${mainToolParams.priority}-optimized intent: ${mainToolParams.input_amount} ${mainToolParams.input_asset} → ${mainToolParams.output_asset} (${analysis.executionProbability}% execution probability)`,
+      };
+
+      return {
+        ...result,
+        template_info: {
+          name: params.template,
+          priority: config.priority,
+          risk_tolerance: config.risk,
+          urgency: config.urgency,
+          description: getTemplateDescription(params.template),
+        },
+      };
+    } catch (error) {
+      const result = {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unexpected error in intent generation",
+      };
+
+      return result;
+    }
   },
 });
 
@@ -428,43 +601,65 @@ export const quickOptimalTemplateTool = tool({
 // UTILITY FUNCTIONS
 // ============================================================================
 
-function generateRecommendations(analysis: ReturnType<typeof analyzeOptimalIntent>): string[] {
+function generateRecommendations(
+  analysis: ReturnType<typeof analyzeOptimalIntent>
+): string[] {
   const recommendations: string[] = [];
 
   if (analysis.executionProbability < 80) {
-    recommendations.push("Consider increasing slippage tolerance or deadline for better execution probability");
+    recommendations.push(
+      "Consider increasing slippage tolerance or deadline for better execution probability"
+    );
   }
 
   if (analysis.risks.includes("TEE requirement reduces solver pool")) {
-    recommendations.push("TEE requirement limits solvers - consider if maximum security is necessary");
+    recommendations.push(
+      "TEE requirement limits solvers - consider if maximum security is necessary"
+    );
   }
 
   if (analysis.constraints.slippageBps > 300) {
-    recommendations.push("High slippage tolerance - you might get worse prices than expected");
+    recommendations.push(
+      "High slippage tolerance - you might get worse prices than expected"
+    );
   }
 
-  if (analysis.complexity === 'complex') {
-    recommendations.push("Complex intent may have higher gas costs and execution risks");
+  if (analysis.complexity === "complex") {
+    recommendations.push(
+      "Complex intent may have higher gas costs and execution risks"
+    );
   }
 
-  return recommendations.length > 0 ? recommendations : ["Intent is well-optimized"];
+  return recommendations.length > 0
+    ? recommendations
+    : ["Intent is well-optimized"];
 }
 
-function getComplexityRange(comparison: ReturnType<typeof compareOptimalIntents>): string {
-  const complexities = comparison.map(c => c.complexity);
+function getComplexityRange(
+  comparison: ReturnType<typeof compareOptimalIntents>
+): string {
+  const complexities = comparison.map((c) => c.complexity);
   const unique = [...new Set(complexities)];
-  return unique.join(' to ');
+  return unique.join(" to ");
 }
 
-function getGasRange(comparison: ReturnType<typeof compareOptimalIntents>): string {
-  const gases = comparison.map(c => parseFloat(c.estimatedGas.replace('$', '')));
+function getGasRange(
+  comparison: ReturnType<typeof compareOptimalIntents>
+): string {
+  const gases = comparison.map((c) =>
+    parseFloat(c.estimatedGas.replace("$", ""))
+  );
   const min = Math.min(...gases);
   const max = Math.max(...gases);
   return `$${min.toFixed(3)}-$${max.toFixed(3)}`;
 }
 
-function getProbabilityRange(comparison: ReturnType<typeof compareOptimalIntents>): string {
-  const probs = comparison.map(c => parseInt(c.executionProbability.replace('%', '')));
+function getProbabilityRange(
+  comparison: ReturnType<typeof compareOptimalIntents>
+): string {
+  const probs = comparison.map((c) =>
+    parseInt(c.executionProbability.replace("%", ""))
+  );
   const min = Math.min(...probs);
   const max = Math.max(...probs);
   return `${min}%-${max}%`;
@@ -472,10 +667,13 @@ function getProbabilityRange(comparison: ReturnType<typeof compareOptimalIntents
 
 function getTemplateDescription(template: string): string {
   const descriptions = {
-    best_price: 'Optimized for maximum output with balanced time and slippage',
-    fastest: 'Optimized for speed with higher slippage tolerance',
-    cheapest_gas: 'Optimized for lowest gas costs with moderate execution time',
-    safest: 'Maximum security with TEE requirements and conservative parameters',
+    best_price: "Optimized for maximum output with balanced time and slippage",
+    fastest: "Optimized for speed with higher slippage tolerance",
+    cheapest_gas: "Optimized for lowest gas costs with moderate execution time",
+    safest:
+      "Maximum security with TEE requirements and conservative parameters",
   };
-  return descriptions[template as keyof typeof descriptions] || 'Standard template';
+  return (
+    descriptions[template as keyof typeof descriptions] || "Standard template"
+  );
 }

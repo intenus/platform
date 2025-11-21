@@ -6,13 +6,12 @@ import { MessageBot } from "./MessageBot";
 import { MessageInput } from "./MessageInput";
 import { MessageUser } from "./MessageUser";
 import { CustomUIMessage } from "@/types/ai";
-import { lastAssistantMessageIsCompleteWithToolCalls, tool } from "ai";
+import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
 import { useChat } from "@ai-sdk/react";
 import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
   useSuiClient,
-  useSuiClientQuery,
 } from "@mysten/dapp-kit";
 import { useState, FormEvent, useEffect, useRef } from "react";
 import { motion, useAnimation, AnimatePresence } from "framer-motion";
@@ -35,6 +34,12 @@ export function ChatBot({ ...props }: ChatBotProps) {
   const { registry } = useIntenusClient();
   const { walrusClient } = useIntenusWalrusClient();
 
+  const currentAccountRef = useRef(currentAccount);
+  
+  useEffect(() => {
+    currentAccountRef.current = currentAccount;
+  }, [currentAccount]);
+
   const { messages, status, sendMessage, addToolOutput } =
     useChat<CustomUIMessage>({
       sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
@@ -43,13 +48,17 @@ export function ChatBot({ ...props }: ChatBotProps) {
           return;
         }
 
-        if (toolCall.toolName === "checkWalletConnection") {
+        if (toolCall.toolName === "checkWalletConnectionTool") {
+          console.log("Handling checkWalletConnectionTool");
+          
+          const account = currentAccountRef.current;
+          
           addToolOutput({
             toolCallId: toolCall.toolCallId,
-            tool: "checkWalletConnection",
+            tool: "checkWalletConnectionTool",
             output: {
-              connected: !!currentAccount,
-              address: currentAccount?.address || null,
+              connected: !!account,
+              address: account?.address || null,
             },
           });
           return;
@@ -77,64 +86,91 @@ export function ChatBot({ ...props }: ChatBotProps) {
         }
 
         if (toolCall.toolName === "submitIntentTool") {
-          if (!currentAccount) {
-            throw new Error("No connected wallet");
+          // 🔥 FIX: Sử dụng ref và add thêm validation
+          const account = currentAccountRef.current;
+          
+          if (!account) {
+            console.error("No wallet connected");
+            addToolOutput({
+              toolCallId: toolCall.toolCallId,
+              tool: "submitIntentTool",
+              output: {
+                error: "No wallet connected. Please connect your wallet first.",
+              },
+            });
+            return;
           }
-          const intent = toolCall.input;
 
-          const flow = await walrusClient.intents.storeReturnFlow(intent);
-          await flow.encode();
+          try {
+            const intent = toolCall.input;
 
-          const registerTx = flow.register({
-            epochs: 1,
-            owner: currentAccount.address,
-            deletable: true,
-          });
+            console.log("Submitting intent with account:", account.address);
 
-          const { digest } = await signAndExecuteTransaction({
-            transaction: registerTx,
-          });
+            const flow = await walrusClient.intents.storeReturnFlow(intent);
+            await flow.encode();
 
-          await flow.upload({
-            digest,
-          });
+            const registerTx = flow.register({
+              epochs: 1,
+              owner: account.address, // Sử dụng account từ ref
+              deletable: true,
+            });
 
-          const { blobId } = await flow.getBlob();
+            const { digest } = await signAndExecuteTransaction({
+              transaction: registerTx,
+            });
 
-          const intentObject = intent.object;
-          const intentPolicy = intentObject.policy;
+            await flow.upload({
+              digest,
+            });
 
-          const intentSubmitTx = registry.submitIntentTransaction(blobId, {
-            auto_revoke_ms: intentPolicy.auto_revoke_time,
-            solver_access_start_ms: 0,
-            solver_access_end_ms: 0,
-            requires_solver_registration: false,
-            min_solver_stake: "",
-            requires_attestation: false,
-            expected_measurement: intentPolicy,
-            purpose: "",
-          });
+            const { blobId } = await flow.getBlob();
 
-          const { digest: intentDigest } = await signAndExecuteTransaction({
-            transaction: intentSubmitTx,
-          });
+            const intentObject = intent.object;
+            const intentPolicy = intentObject.policy;
 
-          const result = await suiClient.waitForTransaction({
-            digest: intentDigest,
-            options: {
-              showEffects: true,
-              showEvents: true,
-              showBalanceChanges: true,
-            },
-          });
+            const intentSubmitTx = registry.submitIntentTransaction(blobId, {
+              auto_revoke_ms: intentPolicy.auto_revoke_time,
+              solver_access_start_ms: 0,
+              solver_access_end_ms: 0,
+              requires_solver_registration: false,
+              min_solver_stake: "",
+              requires_attestation: false,
+              expected_measurement: intentPolicy,
+              purpose: "",
+            });
 
-          addToolOutput({
-            toolCallId: toolCall.toolCallId,
-            tool: "submitIntentTool",
-            output: {
-              intentSubmitResult: result,
-            },
-          });
+            const { digest: intentDigest } = await signAndExecuteTransaction({
+              transaction: intentSubmitTx,
+            });
+
+            const result = await suiClient.waitForTransaction({
+              digest: intentDigest,
+              options: {
+                showEffects: true,
+                showEvents: true,
+                showBalanceChanges: true,
+              },
+            });
+
+            addToolOutput({
+              toolCallId: toolCall.toolCallId,
+              tool: "submitIntentTool",
+              output: {
+                intentSubmitResult: result,
+                success: true,
+              },
+            });
+          } catch (error) {
+            console.error("Error submitting intent:", error);
+            addToolOutput({
+              toolCallId: toolCall.toolCallId,
+              tool: "submitIntentTool",
+              output: {
+                error: `Failed to submit intent: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                success: false,
+              },
+            });
+          }
         }
       },
     });

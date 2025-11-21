@@ -22,7 +22,7 @@ import {
   getDEXProtocolInfoTool,
 } from "./market/market-tools";
 import {
-    checkWalletConnection,
+    checkWalletConnectionTool,
     getBalanceTool,
     getUserBalancesTool,
 } from "./user/user-tool";
@@ -39,7 +39,7 @@ import {
  */
 export const tools = {
   // === User ===
-  checkWalletConnection,
+  checkWalletConnectionTool,
   getUserBalancesTool,
   getBalanceTool,
 

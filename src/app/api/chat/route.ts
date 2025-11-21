@@ -21,7 +21,7 @@ import {
 
 // Server tools (stub)
 import { submitIntentTool } from "@/ai/tools/server-tools";
-import { checkWalletConnection, getUserBalancesTool,getBalanceTool } from "@/ai/tools/user/user-tool";
+import { checkWalletConnectionTool, getUserBalancesTool,getBalanceTool } from "@/ai/tools/user/user-tool";
 
 export const maxDuration = 30;
 
@@ -46,7 +46,7 @@ ${LLAMA_API_CONTEXT}
         getMarketOverviewTool,
 
         // User data
-        checkWalletConnection,
+        checkWalletConnectionTool,
         getUserBalancesTool,
         getBalanceTool,
 
