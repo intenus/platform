@@ -39,10 +39,11 @@ export function MessageBot({ message, status, ...props }: MessageBotProps) {
       if (hasToolCalls) return "cooking";
       return "thinking";
     }
+    return null; // Không hiển thị status khi không streaming
   }, [isStreaming, hasToolCalls]);
 
   return (
-    <Box w={{ base: "full", md: "3/5" }} {...props}>
+    <Box w={["full", "full", "3/4"]} {...props}>
       <VStack gap={"2"} align={"start"}>
         <HStack gap={"2"} align={"start"} justifyContent={"start"}>
           <Favicon colored={false} size="md" />
@@ -103,7 +104,7 @@ function TextPart({
     >
       <Text
         w={"full"}
-        color={isStreaming ? "fg.muted" : "primary.fg"}
+        color={isStreaming ? "fg.muted" : "fg"}
         transition="color 0.3s ease"
       >
         <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
@@ -134,8 +135,8 @@ function StatusTag({ status }: { status: string }) {
   return (
     <ChakraReactTyped
       strings={[config.label + "..."]}
-      typeSpeed={50}
-      backSpeed={30}
+      typeSpeed={80}
+      backSpeed={100}
       loop
       fontSize={"sm"}
       color={"primary.solid"}

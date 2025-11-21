@@ -7,11 +7,14 @@ import {
   ButtonProps,
   HStack,
   HTMLChakraProps,
+  Icon,
+  IconButton,
   Textarea,
   VStack,
   chakra,
 } from "@chakra-ui/react";
 import { ChangeEvent, FormEvent, KeyboardEvent } from "react";
+import { HiArrowUp } from "react-icons/hi";
 
 interface MessageInputProps extends Omit<HTMLChakraProps<"form">, "onChange"> {
   sendButtonProps?: ButtonProps;
@@ -46,15 +49,16 @@ export function MessageInput({
   };
 
   return (
-    <chakra.form w={"full"} onSubmit={handleSubmit} {...props}>
-      <VStack
-        w={"full"}
-        p={"2"}
-        rounded={["3xl", "4xl"]}
-        bg={"bg.subtle/25"}
-        shadow={"xs"}
-      >
-        <Box p={"2"} w={"full"} rounded={["2xl", "3xl"]} bg={"bg.subtle/50"}>
+    <VStack
+      w={["full", "full", "3/4"]}
+      p={"2"}
+      rounded={["3xl", "4xl"]}
+      bg={"bg.subtle/25"}
+      shadow={"xs"}
+      backdropFilter={"blur(64px)"}
+    >
+      <chakra.form w={"full"} onSubmit={handleSubmit} {...props}>
+        <Box p={"2"} w={"full"} rounded={["2xl", "3xl"]} bg={"bg.subtle/75"}>
           <Textarea
             w={"full"}
             maxHeight={"2xs"}
@@ -69,7 +73,7 @@ export function MessageInput({
             disabled={disabled}
           />
           <HStack w={"full"} p={"2"} justify={"end"}>
-            <Button
+            <IconButton
               type="submit"
               colorPalette="primary"
               transition={"all ease-in-out 0.25s"}
@@ -77,12 +81,12 @@ export function MessageInput({
               loading={disabled}
               {...sendButtonProps}
             >
-              Send
-            </Button>
+              <Icon as={HiArrowUp} />
+            </IconButton>
           </HStack>
         </Box>
-      </VStack>
-    </chakra.form>
+      </chakra.form>
+    </VStack>
   );
 }
 

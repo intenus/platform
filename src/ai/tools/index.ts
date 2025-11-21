@@ -9,10 +9,7 @@ import { submitIntentTool } from "./server-tools";
 // IGS Intent Tools
 import {
   getSupportedTokensTool,
-  analyzeOptimalIGSIntentTool,
-  buildOptimalIGSIntentTool,
-  compareOptimalIntentsTool,
-  quickOptimalTemplateTool
+  buildOptimalIGSIntentTool
 } from "./igs-intent/igs-intent-tools";
 
 // Market Data Tools
@@ -45,9 +42,6 @@ export const tools = {
 
   // === Intent Creation (Primary) ===
   buildOptimalIGSIntentTool,
-  analyzeOptimalIGSIntentTool,
-  compareOptimalIntentsTool,
-  quickOptimalTemplateTool,
 
   // === Token ===
   getSupportedTokensTool,

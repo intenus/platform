@@ -13,10 +13,7 @@ import {
 // IGS Intent tools
 import {
   buildOptimalIGSIntentTool,
-  analyzeOptimalIGSIntentTool,
-  compareOptimalIntentsTool,
   getSupportedTokensTool,
-  quickOptimalTemplateTool
 } from "@/ai/tools/igs-intent/igs-intent-tools";
 
 // Server tools (stub)
@@ -53,10 +50,7 @@ ${LLAMA_API_CONTEXT}
 
         // Intent building
         buildOptimalIGSIntentTool,
-        analyzeOptimalIGSIntentTool,
-        compareOptimalIntentsTool,
         getSupportedTokensTool,
-        quickOptimalTemplateTool,
 
         // Server integration (stub)
         submitIntentTool,

@@ -21,14 +21,14 @@ importers:
         specifier: ^11.14.0
         version: 11.14.0(@types/react@19.2.5)(react@19.2.0)
       '@intenus/client-sdk':
-        specifier: ^2.5.0
-        version: 2.5.0(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
+        specifier: ^2.5.1
+        version: 2.5.1(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
       '@intenus/common':
-        specifier: ^2.3.0
-        version: 2.3.0(typescript@5.9.3)
+        specifier: ^2.3.1
+        version: 2.3.1(typescript@5.9.3)
       '@intenus/walrus':
-        specifier: ^2.3.0
-        version: 2.3.0(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
+        specifier: ^2.3.1
+        version: 2.3.1(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
       '@mysten/dapp-kit':
         specifier: ^0.19.9
         version: 0.19.9(@tanstack/react-query@5.90.10(react@19.2.0))(@types/react-dom@19.2.3(@types/react@19.2.5))(@types/react@19.2.5)(babel-plugin-macros@3.1.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
@@ -513,17 +513,17 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@intenus/client-sdk@2.5.0':
-    resolution: {integrity: sha512-Onahpo+6QinkYqJgNi4aOasYskJO0gxpAq3N/Ze736IQAs+NmjH7+eK3UpPXBwkPE43zzt+sYFvqouRNtjILOw==}
+  '@intenus/client-sdk@2.5.1':
+    resolution: {integrity: sha512-WXp3yA69OOEaM+KJqwtfXuXRdHwp66bht0DmvVLk4dG64Do1oBcELNcDsQWNcbS5TkjiyWGsAEFXEAIdHHl3kA==}
     peerDependencies:
       '@mysten/seal': ^0.9.3
       '@mysten/walrus': ^0.8.3
 
-  '@intenus/common@2.3.0':
-    resolution: {integrity: sha512-u7gWQBsH1KiScapopeY7pyUBwok4l25v6aeCeRyD8fBDFccbmB+xnN+1anetcFMU3ji7SYbe6JQ5BT/S8ko2VA==}
+  '@intenus/common@2.3.1':
+    resolution: {integrity: sha512-PyTM8yPJbXqa1XXtPdFlskqkEiCDLUWbGU6GEP/158GCFRBEZWb/bJaaRZblZaiPf59oNxEg/WI15BH951+kXA==}
 
-  '@intenus/walrus@2.3.0':
-    resolution: {integrity: sha512-zMBO6y7F27iUytRVLEuTSSlBTlxPO6h9fJ9Q5tSPKULb7eBTxZ7ip4dxYEVW5BXUjH9aw7cfC9ZdmoYQaKDq5w==}
+  '@intenus/walrus@2.3.1':
+    resolution: {integrity: sha512-V/JOAEpNd6GdlD6PT1yMw9us/2oDujlpGyZN4vQjK8TOR9uQdYZVPCbE0Q+wIxxww6OFGvo+HB54DrG3IPDXQw==}
     peerDependencies:
       '@mysten/sui': ^1.44.0
       '@mysten/walrus': ^0.8.3
@@ -3721,10 +3721,10 @@ snapshots:
   '@img/sharp-win32-x64@0.34.5':
     optional: true
 
-  '@intenus/client-sdk@2.5.0(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)':
+  '@intenus/client-sdk@2.5.1(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)':
     dependencies:
-      '@intenus/common': 2.3.0(typescript@5.9.3)
-      '@intenus/walrus': 2.3.0(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
+      '@intenus/common': 2.3.1(typescript@5.9.3)
+      '@intenus/walrus': 2.3.1(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
       '@mysten/seal': 0.9.4(typescript@5.9.3)
       '@mysten/sui': 1.45.0(typescript@5.9.3)
       '@mysten/walrus': 0.8.4(typescript@5.9.3)
@@ -3733,7 +3733,7 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
-  '@intenus/common@2.3.0(typescript@5.9.3)':
+  '@intenus/common@2.3.1(typescript@5.9.3)':
     dependencies:
       '@mysten/sui': 1.45.0(typescript@5.9.3)
       ajv: 8.17.1
@@ -3744,9 +3744,9 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
-  '@intenus/walrus@2.3.0(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)':
+  '@intenus/walrus@2.3.1(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)':
     dependencies:
-      '@intenus/common': 2.3.0(typescript@5.9.3)
+      '@intenus/common': 2.3.1(typescript@5.9.3)
       '@mysten/sui': 1.45.0(typescript@5.9.3)
       '@mysten/walrus': 0.8.4(typescript@5.9.3)
     transitivePeerDependencies:

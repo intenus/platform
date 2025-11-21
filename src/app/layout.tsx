@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Provider } from "@/app/provider";
-// import { Poppins } from "next/font/google";
+import { Poppins } from "next/font/google";
 import '@mysten/dapp-kit/dist/index.css';
 
-// const poppins = Poppins({
-//   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-// });
+const poppins = Poppins({
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+});
 
 export const metadata: Metadata = {
   title: "Intenus Protocol",
@@ -20,7 +20,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body style={{
+      <body className={poppins.className} style={{
         width: "100vw",
         height: "100vh",
         overflow: "hidden",
