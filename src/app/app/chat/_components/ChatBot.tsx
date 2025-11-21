@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 "use client";
 
-import { BoxProps, VStack } from "@chakra-ui/react";
+import { BoxProps, Center, VStack } from "@chakra-ui/react";
 import { MessageBot } from "./MessageBot";
 import { MessageInput } from "./MessageInput";
 import { MessageUser } from "./MessageUser";
@@ -17,6 +17,7 @@ import { useState, FormEvent, useEffect, useRef } from "react";
 import { motion, useAnimation, AnimatePresence } from "framer-motion";
 import { useIntenusClient } from "@/hooks/useIntenusClient";
 import { useIntenusWalrusClient } from "@/hooks/useIntenusWalrusClient";
+import { Copyright } from "./Copyright";
 
 interface ChatBotProps extends BoxProps {}
 export function ChatBot({ ...props }: ChatBotProps) {
@@ -35,7 +36,7 @@ export function ChatBot({ ...props }: ChatBotProps) {
   const { walrusClient } = useIntenusWalrusClient();
 
   const currentAccountRef = useRef(currentAccount);
-  
+
   useEffect(() => {
     currentAccountRef.current = currentAccount;
   }, [currentAccount]);
@@ -50,9 +51,9 @@ export function ChatBot({ ...props }: ChatBotProps) {
 
         if (toolCall.toolName === "checkWalletConnectionTool") {
           console.log("Handling checkWalletConnectionTool");
-          
+
           const account = currentAccountRef.current;
-          
+
           addToolOutput({
             toolCallId: toolCall.toolCallId,
             tool: "checkWalletConnectionTool",
@@ -86,9 +87,8 @@ export function ChatBot({ ...props }: ChatBotProps) {
         }
 
         if (toolCall.toolName === "submitIntentTool") {
-          // 🔥 FIX: Sử dụng ref và add thêm validation
           const account = currentAccountRef.current;
-          
+
           if (!account) {
             console.error("No wallet connected");
             addToolOutput({
@@ -111,7 +111,7 @@ export function ChatBot({ ...props }: ChatBotProps) {
 
             const registerTx = flow.register({
               epochs: 1,
-              owner: account.address, // Sử dụng account từ ref
+              owner: account.address,
               deletable: true,
             });
 
@@ -130,13 +130,21 @@ export function ChatBot({ ...props }: ChatBotProps) {
 
             const intentSubmitTx = registry.submitIntentTransaction(blobId, {
               auto_revoke_ms: intentPolicy.auto_revoke_time,
-              solver_access_start_ms: 0,
-              solver_access_end_ms: 0,
-              requires_solver_registration: false,
-              min_solver_stake: "",
-              requires_attestation: false,
-              expected_measurement: intentPolicy,
-              purpose: "",
+              solver_access_start_ms:
+                intentPolicy.solver_access_window.start_ms,
+              solver_access_end_ms: intentPolicy.solver_access_window.end_ms,
+              requires_solver_registration:
+                intentPolicy.access_condition.requires_solver_registration,
+              min_solver_stake: intentPolicy.access_condition.min_solver_stake,
+              requires_attestation:
+                intentPolicy.access_condition.requires_tee_attestation,
+              expected_measurement: new Uint8Array(
+                Buffer.from(
+                  intentPolicy.access_condition.expected_measurement,
+                  "hex"
+                )
+              ),
+              purpose: intentPolicy.access_condition.purpose,
             });
 
             const { digest: intentDigest } = await signAndExecuteTransaction({
@@ -166,7 +174,9 @@ export function ChatBot({ ...props }: ChatBotProps) {
               toolCallId: toolCall.toolCallId,
               tool: "submitIntentTool",
               output: {
-                error: `Failed to submit intent: ${error instanceof Error ? error.message : 'Unknown error'}`,
+                error: `Failed to submit intent: ${
+                  error instanceof Error ? error.message : "Unknown error"
+                }`,
                 success: false,
               },
             });
@@ -231,7 +241,6 @@ export function ChatBot({ ...props }: ChatBotProps) {
           scrollToPosition(container.scrollHeight, "smooth");
         };
 
-        // Scroll ngay lập tức và sau mỗi khoảng thời gian ngắn
         scrollToBottom();
         const interval = setInterval(scrollToBottom, 100);
 
@@ -259,7 +268,7 @@ export function ChatBot({ ...props }: ChatBotProps) {
   };
 
   return (
-    <VStack w="full" h={"full"} p={4}>
+    <VStack w="full" h={"full"} p={"4"} position={"relative"}>
       {/* Messages Container với Motion */}
       <motion.div
         ref={messagesContainerRef}
@@ -271,7 +280,7 @@ export function ChatBot({ ...props }: ChatBotProps) {
           width: "100%",
           overflowY: "auto",
           overflowX: "hidden",
-          willChange: "transform", // Performance optimization
+          willChange: "transform",
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -284,17 +293,14 @@ export function ChatBot({ ...props }: ChatBotProps) {
               initial={{
                 opacity: 0,
                 y: message.role === "user" ? 20 : -20,
-                scale: 0.95,
               }}
               animate={{
                 opacity: 1,
                 y: 0,
-                scale: 1,
               }}
               exit={{
                 opacity: 0,
                 y: message.role === "user" ? -20 : 20,
-                scale: 0.95,
               }}
               transition={{
                 duration: 0.4,
@@ -307,13 +313,20 @@ export function ChatBot({ ...props }: ChatBotProps) {
               layout
               layoutId={message.id}
               style={{
+                width: "100%",
                 willChange: "transform, opacity",
+                display: "flex",
+                justifyContent: "center",
+                alignContent: "center",
               }}
             >
               {message.role === "user" ? (
                 <MessageUser message={message} />
               ) : (
-                <MessageBot message={message} status={status} />
+                <MessageBot
+                  message={message}
+                  status={index === messages.length - 1 ? status : "submitted"}
+                />
               )}
             </motion.div>
           ))}
@@ -334,7 +347,6 @@ export function ChatBot({ ...props }: ChatBotProps) {
           >
             <motion.div
               animate={{
-                scale: [1, 1.2, 1],
                 opacity: [0.5, 1, 0.5],
               }}
               transition={{
@@ -359,7 +371,15 @@ export function ChatBot({ ...props }: ChatBotProps) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
-        style={{ width: "100%" }}
+        style={{
+          width: "100%",
+          flex: 0,
+          padding: "16px",
+          display: "flex",
+          justifyContent: "center",
+          alignContent: "center",
+          bottom: "48px",
+        }}
       >
         <MessageInput
           onSubmit={handleSubmit}
@@ -368,6 +388,7 @@ export function ChatBot({ ...props }: ChatBotProps) {
           disabled={isLoading}
         />
       </motion.div>
+      <Copyright />
     </VStack>
   );
 }

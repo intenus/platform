@@ -8,7 +8,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       w={"full"}
       h={"full"}
       position={"relative"}
-      p={"6"}
       overflow={"hidden"}
     >
       {children}
@@ -17,9 +16,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         pointerEvents={"none"}
         zIndex={"-1"}
         position={"fixed"}
-        translate={"0 256px"}
+        translate={"0 15vh"}
       >
-        <NextImage src={"/assets/primary-glow.png"} alt="primary glow" fill />
+        <NextImage src={"/assets/secondary-glow.png"} alt="secondary glow" fill />
       </Image>
     </Center>
   );

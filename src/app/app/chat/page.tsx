@@ -1,10 +1,9 @@
-import {
-  VStack,
-} from "@chakra-ui/react";
+import { VStack } from "@chakra-ui/react";
 import { ChatBot } from "./_components/ChatBot";
+import { Copyright } from "./_components/Copyright";
 export default function ChatPage() {
   return (
-    <VStack w="full" h={"full"} maxW={["full", "xl", "2xl", "4xl"]} p={4}>
+    <VStack w="full" h={"full"} gap={"4"} position={"relative"}>
       <ChatBot />
     </VStack>
   );

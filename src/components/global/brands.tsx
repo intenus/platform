@@ -21,12 +21,12 @@ export function Favicon({ colored = true,size, ...props }: FaviconProps) {
     xl: 64,
   };
   const dimension = size ? sizeMap[size] : 64;
-  
+
   return (
     // eslint-disable-next-line jsx-a11y/alt-text
     <Image asChild {...props}>
       <NextImage
-        src={colored ? "ColoredFavicon.svg" : "/Favicon.svg"}
+        src={colored ? "/ColoredFavicon.svg" : "/Favicon.svg"}
         alt="Intenus Protocol"
         width={dimension}
         height={dimension}

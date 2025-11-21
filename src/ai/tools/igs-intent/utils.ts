@@ -19,10 +19,6 @@ import type { z } from 'zod';
 // TYPES - SDK COMPLIANT ONLY
 // ============================================================================
 
-type IGSValidationSuccess = { success: true; data: IGSIntent };
-type IGSValidationFailure = { success: false; errors: z.ZodError };
-type SDKValidationResult = IGSValidationSuccess | IGSValidationFailure  ;
-
 export interface IntentGenerationInput {
   userAddress: string;
   inputToken: {
@@ -84,23 +80,19 @@ export function generateOptimalIntent(
     const intent = buildSDKStrictIntent(input, smartParams);
     
     // 3. Validate with SDK
-    const validation: SDKValidationResult = validateIGSIntent(intent);
+    const validation = validateIGSIntent(intent);
     
-    if (validation.success) {
+    if (validation.compliance_score && validation.compliance_score >= 0.95) {
       return {
         valid: true,
-        intent: validation.data,
+        intent,
         errors: [],
         warnings: []
       };
     } else {
-      const errors = validation.errors.issues.map(issue => 
-        `${issue.path.join('.')}: ${issue.message}`
-      );
-      
       return {
         valid: false,
-        errors,
+        errors: validation.errors.map(err => err.message),
         warnings: []
       };
     }
