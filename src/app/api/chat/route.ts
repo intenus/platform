@@ -2,6 +2,7 @@ import { openai } from "@ai-sdk/openai";
 import { streamText, convertToModelMessages, UIMessage } from "ai";
 import { SYSTEM_PROMPT } from "@/ai/context/system-prompt";
 import { LLAMA_API_CONTEXT } from "@/ai/context/llama-context";
+import { ChatbotMode, getSystemPromptForMode, DEFAULT_MODE } from "@/ai/config/chatbot-modes";
 
 // Market tools
 import {
@@ -24,12 +25,16 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   try {
-    const { messages }: { messages: UIMessage[] } = await req.json();
+    const { messages, mode }: { messages: UIMessage[]; mode?: ChatbotMode } = await req.json();
+
+    // Get mode-specific system prompt
+    const activeMode = mode || DEFAULT_MODE;
+    const systemPrompt = getSystemPromptForMode(SYSTEM_PROMPT, activeMode);
 
     const result = streamText({
       model: openai(process.env.OPENAI_MODEL || "gpt-4o-mini"),
       messages: convertToModelMessages(messages),
-      system: `${SYSTEM_PROMPT}
+      system: `${systemPrompt}
 
 ---
 ## API References (for your information)
