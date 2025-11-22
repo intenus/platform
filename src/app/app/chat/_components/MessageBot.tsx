@@ -1,16 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import {
-  Box,
-  BoxProps,
-  HStack,
-  Text,
-  Badge,
-  VStack,
-  chakra,
-} from "@chakra-ui/react";
-import type { ChatStatus, TextUIPart, ToolCallPart, ToolResultPart } from "ai";
+import { Box, BoxProps, HStack, Text, VStack, chakra } from "@chakra-ui/react";
+import type { ChatStatus, TextUIPart } from "ai";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -39,11 +31,11 @@ export function MessageBot({ message, status, ...props }: MessageBotProps) {
       if (hasToolCalls) return "cooking";
       return "thinking";
     }
-    return null; // Không hiển thị status khi không streaming
+    return null;
   }, [isStreaming, hasToolCalls]);
 
   return (
-    <Box w={["full", "full", "3/4"]} {...props}>
+    <Box w={["full", "full", "3/5"]} {...props}>
       <VStack gap={"2"} align={"start"}>
         <HStack gap={"2"} align={"start"} justifyContent={"start"}>
           <Favicon colored={false} size="md" />
@@ -102,36 +94,27 @@ function TextPart({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Text
-        w={"full"}
-        color={isStreaming ? "fg.muted" : "fg"}
-        transition="color 0.3s ease"
-      >
-        <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
-          {part.text}
-        </Markdown>
-      </Text>
+      <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+        {part.text}
+      </Markdown>
     </motion.div>
   );
 }
 
 function StatusTag({ status }: { status: string }) {
-  const statusConfig: Record<
-    string,
-    { label: string }
-  > = {
+  const statusConfig: Record<string, { label: string }> = {
     cooking: { label: "Generating" },
     handling: { label: "Processing" },
-    perfect: { label: "Complete"},
+    perfect: { label: "Complete" },
     thinking: { label: "Working" },
   };
 
   const config = statusConfig[status] || statusConfig.perfect;
 
-  if(status ==="perfect") {
+  if (status === "perfect") {
     return null;
   }
-  
+
   return (
     <ChakraReactTyped
       strings={[config.label + "..."]}

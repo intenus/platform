@@ -15,8 +15,10 @@ import {
 } from "@chakra-ui/react";
 import { ChangeEvent, FormEvent, KeyboardEvent } from "react";
 import { HiArrowUp } from "react-icons/hi";
+import { ModeSelector, ModeSelectorProps } from "./ModeSelector";
 
 interface MessageInputProps extends Omit<HTMLChakraProps<"form">, "onChange"> {
+  modeSelectorProps: ModeSelectorProps;
   sendButtonProps?: ButtonProps;
   value?: string;
   onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
@@ -25,6 +27,7 @@ interface MessageInputProps extends Omit<HTMLChakraProps<"form">, "onChange"> {
 }
 
 export function MessageInput({
+  modeSelectorProps,
   sendButtonProps,
   value,
   onChange,
@@ -50,7 +53,7 @@ export function MessageInput({
 
   return (
     <VStack
-      w={["full", "full", "3/4"]}
+      w={["full", "full", "3/5"]}
       p={"2"}
       rounded={["3xl", "4xl"]}
       bg={"bg.subtle/25"}
@@ -58,7 +61,7 @@ export function MessageInput({
       backdropFilter={"blur(64px)"}
     >
       <chakra.form w={"full"} onSubmit={handleSubmit} {...props}>
-        <Box p={"2"} w={"full"} rounded={["2xl", "3xl"]} bg={"bg.subtle/75"}>
+        <Box p={"2"} w={"full"} rounded={["2xl", "3xl"]} bg={"bg/50"}>
           <Textarea
             w={"full"}
             maxHeight={"2xs"}
@@ -72,7 +75,8 @@ export function MessageInput({
             onKeyDown={handleKeyDown}
             disabled={disabled}
           />
-          <HStack w={"full"} p={"2"} justify={"end"}>
+          <HStack w={"full"} p={"2"} justify={"space-between"}>
+            <ModeSelector {...modeSelectorProps}/>
             <IconButton
               type="submit"
               colorPalette="primary"

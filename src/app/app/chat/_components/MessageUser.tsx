@@ -6,7 +6,7 @@ interface MessageUserProps extends StackProps {
 }
 export function MessageUser({ message, ...props }: MessageUserProps) {
   return (
-    <HStack w={["full", "full", "3/4"]} justify={"right"} {...props}>
+    <HStack w={["full", "full", "3/5"]} justify={"right"} {...props}>
       <HStack p={"3"} rounded={"xl"} bg={"bg.subtle/50"} backdropFilter={"blur(64px)"}>
         <Text w={"full"} color={"fg"} textAlign={"right"}>
           {message.parts.map((part, index) => (

@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 "use client";
 
-import { BoxProps, Center, VStack } from "@chakra-ui/react";
+import { BoxProps, VStack } from "@chakra-ui/react";
 import { MessageBot } from "./MessageBot";
 import { MessageInput } from "./MessageInput";
 import { MessageUser } from "./MessageUser";
-import { ModeSelector } from "./ModeSelector";
 import { CustomUIMessage } from "@/types/ai";
 import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
 import { useChat } from "@ai-sdk/react";
@@ -15,17 +14,18 @@ import {
   useSuiClient,
 } from "@mysten/dapp-kit";
 import { useState, FormEvent, useEffect, useRef } from "react";
-import { motion, useAnimation, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useIntenusClient } from "@/hooks/useIntenusClient";
 import { useIntenusWalrusClient } from "@/hooks/useIntenusWalrusClient";
 import { Copyright } from "./Copyright";
 import { ChatbotMode, DEFAULT_MODE } from "@/ai/config/chatbot-modes";
+import { Placeholder } from "./Placeholder";
 
 interface ChatBotProps extends BoxProps {}
-export function ChatBot({ ...props }: ChatBotProps) {
+export function ChatBot({}: ChatBotProps) {
   const suiClient = useSuiClient();
   const currentAccount = useCurrentAccount();
-  const { mutateAsync: signAndExecuteTransaction, isPending: isSigning } =
+  const { mutateAsync: signAndExecuteTransaction } =
     useSignAndExecuteTransaction();
 
   const [input, setInput] = useState("");
@@ -33,7 +33,6 @@ export function ChatBot({ ...props }: ChatBotProps) {
 
   // Refs và animation controls
   const messagesContainerRef = useRef<HTMLDivElement>(null);
-  const controls = useAnimation();
   const prevMessagesLengthRef = useRef(0);
   const { registry } = useIntenusClient();
   const { walrusClient } = useIntenusWalrusClient();
@@ -47,9 +46,6 @@ export function ChatBot({ ...props }: ChatBotProps) {
   const { messages, status, sendMessage, addToolOutput } =
     useChat<CustomUIMessage>({
       sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
-      body: {
-        mode,
-      },
       onToolCall: async ({ toolCall }) => {
         if (toolCall.dynamic) {
           return;
@@ -261,23 +257,27 @@ export function ChatBot({ ...props }: ChatBotProps) {
     e?.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    sendMessage({
-      role: "user",
-      parts: [
-        {
-          type: "text",
-          text: input,
+    sendMessage(
+      {
+        role: "user",
+        parts: [
+          {
+            type: "text",
+            text: input,
+          },
+        ],
+      },
+      {
+        body: {
+          mode,
         },
-      ],
-    });
+      }
+    );
     setInput("");
   };
 
   return (
     <VStack w="full" h={"full"} p={"4"} position={"relative"}>
-      {/* Mode Selector */}
-      <ModeSelector selectedMode={mode} onModeChange={setMode} />
-
       {/* Messages Container với Motion */}
       <motion.div
         ref={messagesContainerRef}
@@ -296,6 +296,7 @@ export function ChatBot({ ...props }: ChatBotProps) {
         transition={{ duration: 0.3 }}
       >
         <AnimatePresence mode="popLayout">
+          {messages.length === 0 && <Placeholder />}
           {messages.map((message, index) => (
             <motion.div
               key={message.id}
@@ -391,6 +392,10 @@ export function ChatBot({ ...props }: ChatBotProps) {
         }}
       >
         <MessageInput
+          modeSelectorProps={{
+            selectedMode: mode,
+            onModeChange: setMode,
+          }}
           onSubmit={handleSubmit}
           value={input}
           onChange={(e) => setInput(e.target.value)}
