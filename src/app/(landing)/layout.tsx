@@ -6,7 +6,7 @@ import NextImage from "next/image";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <Center flexDirection="column" minHeight="100vh" padding="8">
+    <Center flexDirection="column" minHeight="100vh" padding="4">
       <Header />
       {children}
       <Image

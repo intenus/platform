@@ -1,61 +1,204 @@
 "use client";
 
-import { HStack, Button, Text, Box } from "@chakra-ui/react";
+import {
+  HStack,
+  Button,
+  Text,
+  Box,
+  MenuTrigger,
+  VStack,
+} from "@chakra-ui/react";
 import { ChatbotMode, CHATBOT_MODES } from "@/ai/config/chatbot-modes";
 import { motion } from "framer-motion";
+import { MenuContent, MenuItem, MenuRoot } from "@/components/ui/menu";
 
-interface ModeSelectorProps {
+export interface ModeSelectorProps {
   selectedMode: ChatbotMode;
   onModeChange: (mode: ChatbotMode) => void;
 }
 
-const MotionButton = motion(Button);
+const MotionButton = motion.create(Button);
+const MotionItem = motion.create(MenuItem);
+const MotionText = motion.create(Text);
 
-export function ModeSelector({ selectedMode, onModeChange }: ModeSelectorProps) {
-  const modes: ChatbotMode[] = ['safe', 'pro', 'smart'];
+export function ModeSelector({
+  selectedMode,
+  onModeChange,
+}: ModeSelectorProps) {
+  const modes: ChatbotMode[] = ["safe", "pro", "smart"];
+  const mode = selectedMode;
+  const config = CHATBOT_MODES[mode];
+  const isSelected = selectedMode === mode;
+
+  // return (
+  //   <Box w="full" pb={2}>
+  //     <HStack gap={2} justify="center" w="full">
+  //       {modes.map((mode) => {
+  //         const config = CHATBOT_MODES[mode];
+  //         const isSelected = selectedMode === mode;
+
+  //         return (
+  //           <MotionButton
+  //             key={mode}
+  //             size="sm"
+  //             variant={isSelected ? "solid" : "outline"}
+  //             colorScheme={isSelected ? "blue" : "gray"}
+  //             onClick={() => onModeChange(mode)}
+  //             whileHover={{ scale: 1.05 }}
+  //             whileTap={{ scale: 0.95 }}
+  //             transition={{ duration: 0.2 }}
+  //             px={4}
+  //             py={2}
+  //             fontSize="sm"
+  //             fontWeight={isSelected ? "600" : "400"}
+  //             _hover={{
+  //               bg: isSelected ? "blue.600" : "gray.100",
+  //               borderColor: isSelected ? "blue.600" : "gray.300",
+  //             }}
+  //           >
+  //             <Text fontSize="xs" fontWeight={isSelected ? "semibold" : "normal"}>
+  //               {config.name}
+  //             </Text>
+  //           </MotionButton>
+  //         );
+  //       })}
+  //     </HStack>
+  //     <Text
+  //       fontSize="xs"
+  //       color="gray.500"
+  //       textAlign="center"
+  //       mt={2}
+  //       px={4}
+  //     >
+  //       {CHATBOT_MODES[selectedMode].description}
+  //     </Text>
+  //   </Box>
+  // );
 
   return (
-    <Box w="full" pb={2}>
-      <HStack spacing={2} justify="center" w="full">
+    <MenuRoot>
+      <MenuTrigger asChild>
+        <MotionButton
+          key={mode}
+          size="sm"
+          rounded={"full"}
+          variant={"outline"}
+          transition={{ duration: 0.2 }}
+          borderColor={
+            selectedMode === "smart"
+              ? "green.solid"
+              : selectedMode === "pro"
+              ? "yellow.solid"
+              : "blue.solid"
+          }
+          color={
+            selectedMode === "smart"
+              ? "green.solid"
+              : selectedMode === "pro"
+              ? "yellow.solid"
+              : "blue.solid"
+          }
+          bg="transparent"
+          _hover={{
+            bg: "transparent",
+            background: "transparent",
+            boxShadow: "none",
+            backdropFilter: "none",
+          }}
+          _active={{
+            bg: "transparent",
+            background: "transparent",
+            boxShadow: "none",
+          }}
+          _focus={{
+            bg: "transparent",
+            boxShadow: "none",
+          }}
+          _focusVisible={{
+            bg: "transparent",
+            boxShadow: "none",
+          }}
+          _pressed={{
+            bg: "transparent",
+            boxShadow: "none",
+          }}
+        >
+          <Text fontSize="xs" fontWeight={isSelected ? "semibold" : "normal"}>
+            {config.name}
+          </Text>
+        </MotionButton>
+      </MenuTrigger>
+      <MenuContent
+        rounded={"2xl"}
+        bg={"bg.subtle/25"}
+        backdropFilter={"blur(64px)"}
+      >
         {modes.map((mode) => {
           const config = CHATBOT_MODES[mode];
           const isSelected = selectedMode === mode;
 
           return (
-            <MotionButton
+            <MotionItem
               key={mode}
-              size="sm"
-              variant={isSelected ? "solid" : "outline"}
-              colorScheme={isSelected ? "blue" : "gray"}
-              onClick={() => onModeChange(mode)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.2 } as any}
-              px={4}
-              py={2}
-              fontSize="sm"
+              value={mode}
+              onSelect={() => onModeChange(mode)}
               fontWeight={isSelected ? "600" : "400"}
+              rounded={"lg"}
+              role="group"
+              whileHover={"hover"}
               _hover={{
-                bg: isSelected ? "blue.600" : "gray.100",
-                borderColor: isSelected ? "blue.600" : "gray.300",
+                bg: "transparent",
+                color:
+                  mode === "smart"
+                    ? "green.solid"
+                    : mode === "pro"
+                    ? "yellow.solid"
+                    : "blue.solid",
+                border: "1px solid",
+                borderColor:
+                  mode === "smart"
+                    ? "green.solid"
+                    : mode === "pro"
+                    ? "yellow.solid"
+                    : "blue.solid",
+                transition: "all 0.5s ease-in-out",
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+                delay: 0.1,
+              }}
+              _active={{
+                bg: "transparent",
+                background: "transparent",
+                boxShadow: "none",
+              }}
+              _focus={{
+                bg: "transparent",
+                boxShadow: "none",
               }}
             >
-              <Text fontSize="xs" fontWeight={isSelected ? "semibold" : "normal"}>
-                {config.name}
-              </Text>
-            </MotionButton>
+              <VStack align="start" gap={0}>
+                <Text fontSize="sm">{config.name}</Text>
+                <MotionText
+                  fontSize="xs"
+                  _hover={{
+                    color:
+                      mode === "smart"
+                        ? "green.fg"
+                        : mode === "pro"
+                        ? "yellow.fg"
+                        : "blue.fg",
+                  }}
+                >
+                  {config.description}
+                </MotionText>
+              </VStack>
+            </MotionItem>
           );
         })}
-      </HStack>
-      <Text
-        fontSize="xs"
-        color="gray.500"
-        textAlign="center"
-        mt={2}
-        px={4}
-      >
-        {CHATBOT_MODES[selectedMode].description}
-      </Text>
-    </Box>
+      </MenuContent>
+    </MenuRoot>
   );
 }
