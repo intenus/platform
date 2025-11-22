@@ -5,6 +5,7 @@ import { BoxProps, Center, VStack } from "@chakra-ui/react";
 import { MessageBot } from "./MessageBot";
 import { MessageInput } from "./MessageInput";
 import { MessageUser } from "./MessageUser";
+import { ModeSelector } from "./ModeSelector";
 import { CustomUIMessage } from "@/types/ai";
 import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
 import { useChat } from "@ai-sdk/react";
@@ -18,6 +19,7 @@ import { motion, useAnimation, AnimatePresence } from "framer-motion";
 import { useIntenusClient } from "@/hooks/useIntenusClient";
 import { useIntenusWalrusClient } from "@/hooks/useIntenusWalrusClient";
 import { Copyright } from "./Copyright";
+import { ChatbotMode, DEFAULT_MODE } from "@/ai/config/chatbot-modes";
 
 interface ChatBotProps extends BoxProps {}
 export function ChatBot({ ...props }: ChatBotProps) {
@@ -27,6 +29,7 @@ export function ChatBot({ ...props }: ChatBotProps) {
     useSignAndExecuteTransaction();
 
   const [input, setInput] = useState("");
+  const [mode, setMode] = useState<ChatbotMode>(DEFAULT_MODE);
 
   // Refs và animation controls
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -44,6 +47,9 @@ export function ChatBot({ ...props }: ChatBotProps) {
   const { messages, status, sendMessage, addToolOutput } =
     useChat<CustomUIMessage>({
       sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+      body: {
+        mode,
+      },
       onToolCall: async ({ toolCall }) => {
         if (toolCall.dynamic) {
           return;
@@ -269,6 +275,9 @@ export function ChatBot({ ...props }: ChatBotProps) {
 
   return (
     <VStack w="full" h={"full"} p={"4"} position={"relative"}>
+      {/* Mode Selector */}
+      <ModeSelector selectedMode={mode} onModeChange={setMode} />
+
       {/* Messages Container với Motion */}
       <motion.div
         ref={messagesContainerRef}
