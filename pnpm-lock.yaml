@@ -24,11 +24,11 @@ importers:
         specifier: ^2.6.3
         version: 2.6.3(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
       '@intenus/common':
-        specifier: ^2.4.2
-        version: 2.4.3(typescript@5.9.3)
+        specifier: ^2.4.4
+        version: 2.4.4(typescript@5.9.3)
       '@intenus/walrus':
-        specifier: ^2.4.1
-        version: 2.4.1(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
+        specifier: ^2.4.2
+        version: 2.4.2(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
       '@mysten/dapp-kit':
         specifier: ^0.19.9
         version: 0.19.9(@tanstack/react-query@5.90.10(react@19.2.0))(@types/react-dom@19.2.3(@types/react@19.2.6))(@types/react@19.2.6)(babel-plugin-macros@3.1.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
@@ -525,8 +525,17 @@ packages:
   '@intenus/common@2.4.3':
     resolution: {integrity: sha512-fJuoWtRPznt9HM9G/tXz+A9rguXM2FQ8u9iEgr/aw9+Ds72bGMGcmIlNZAI6kpXBFEYv37CZiYBrO8WVDxlTPA==}
 
+  '@intenus/common@2.4.4':
+    resolution: {integrity: sha512-zlNyDDe0c2nAkCIhcFKOisfQxzcJJD1I0+O2GVJQzUTN14y6fV2IM/7dbLICIKRMf+Uz2tTPFjBTkn/2U2Be2Q==}
+
   '@intenus/walrus@2.4.1':
     resolution: {integrity: sha512-AIGyB6+VQi76I22d9C8SmQxQvotq1V1aC+PPR7l3aD8Ndr8XbPr15y0STuSfZ+ojjCfAjLRMa7WvMEajjDo42Q==}
+    peerDependencies:
+      '@mysten/sui': ^1.44.0
+      '@mysten/walrus': ^0.8.3
+
+  '@intenus/walrus@2.4.2':
+    resolution: {integrity: sha512-F3j+cOZCgISvhwfLO33jKWyCTNgZXjb9N/i6AorW63HtKapzJrrXCUnnTss4Oy5DYNRSA4Ahhq+fVH7glh08jQ==}
     peerDependencies:
       '@mysten/sui': ^1.44.0
       '@mysten/walrus': ^0.8.3
@@ -3752,9 +3761,30 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
+  '@intenus/common@2.4.4(typescript@5.9.3)':
+    dependencies:
+      '@mysten/sui': 1.45.0(typescript@5.9.3)
+      ajv: 8.17.1
+      ajv-formats: 2.1.1(ajv@8.17.1)
+      zod: 4.1.12
+    transitivePeerDependencies:
+      - '@gql.tada/svelte-support'
+      - '@gql.tada/vue-support'
+      - typescript
+
   '@intenus/walrus@2.4.1(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)':
     dependencies:
       '@intenus/common': 2.4.3(typescript@5.9.3)
+      '@mysten/sui': 1.45.0(typescript@5.9.3)
+      '@mysten/walrus': 0.8.4(typescript@5.9.3)
+    transitivePeerDependencies:
+      - '@gql.tada/svelte-support'
+      - '@gql.tada/vue-support'
+      - typescript
+
+  '@intenus/walrus@2.4.2(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)':
+    dependencies:
+      '@intenus/common': 2.4.4(typescript@5.9.3)
       '@mysten/sui': 1.45.0(typescript@5.9.3)
       '@mysten/walrus': 0.8.4(typescript@5.9.3)
     transitivePeerDependencies:
@@ -5496,7 +5526,7 @@ snapshots:
       eslint: 9.39.1
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint@9.39.1))(eslint@9.39.1)
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint@9.39.1))(eslint@9.39.1))(eslint@9.39.1)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@9.39.1)
       eslint-plugin-react: 7.37.5(eslint@9.39.1)
       eslint-plugin-react-hooks: 7.0.1(eslint@9.39.1)
@@ -5529,7 +5559,7 @@ snapshots:
       tinyglobby: 0.2.15
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint@9.39.1))(eslint@9.39.1))(eslint@9.39.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -5544,7 +5574,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1)(eslint@9.39.1):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(@typescript-eslint/parser@8.47.0(eslint@9.39.1)(typescript@5.9.3))(eslint@9.39.1))(eslint@9.39.1))(eslint@9.39.1):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9

@@ -138,7 +138,8 @@ export function ChatBot({}: ChatBotProps) {
               min_solver_stake: intentPolicy.access_condition.min_solver_stake,
               requires_attestation:
                 intentPolicy.access_condition.requires_tee_attestation,
-              min_solver_reputation_score: 100,
+              min_solver_reputation_score:
+                intentPolicy.access_condition.min_solver_reputation_score,
             });
 
             const { digest: intentDigest } = await signAndExecuteTransaction({
