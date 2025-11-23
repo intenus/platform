@@ -68,6 +68,7 @@ export function MessageInput({
           solutionId:
             "0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f",
           transactionBytes: "0xabcdef1234567890",
+          score: 87,
         }}
       />
       <chakra.form w={"full"} onSubmit={handleSubmit} {...props}>

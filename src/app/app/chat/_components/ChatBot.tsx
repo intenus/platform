@@ -106,8 +106,6 @@ export function ChatBot({}: ChatBotProps) {
           try {
             const intent = toolCall.input;
 
-            console.log("Submitting intent with account:", account.address);
-
             const flow = await walrusClient.intents.storeReturnFlow(intent);
             await flow.encode();
 
@@ -140,13 +138,7 @@ export function ChatBot({}: ChatBotProps) {
               min_solver_stake: intentPolicy.access_condition.min_solver_stake,
               requires_attestation:
                 intentPolicy.access_condition.requires_tee_attestation,
-              expected_measurement: new Uint8Array(
-                Buffer.from(
-                  intentPolicy.access_condition.expected_measurement,
-                  "hex"
-                )
-              ),
-              purpose: intentPolicy.access_condition.purpose,
+              min_solver_reputation_score: 100,
             });
 
             const { digest: intentDigest } = await signAndExecuteTransaction({
