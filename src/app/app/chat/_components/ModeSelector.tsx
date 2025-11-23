@@ -7,11 +7,15 @@ import {
   Box,
   MenuTrigger,
   VStack,
+  Icon,
 } from "@chakra-ui/react";
+import { PiBaseballHelmetBold } from "react-icons/pi";
+import { FaRegSmile } from "react-icons/fa";
+import { FaSuperpowers } from "react-icons/fa6";
+
 import { ChatbotMode, CHATBOT_MODES } from "@/ai/config/chatbot-modes";
 import { motion } from "framer-motion";
 import { MenuContent, MenuItem, MenuRoot } from "@/components/ui/menu";
-
 export interface ModeSelectorProps {
   selectedMode: ChatbotMode;
   onModeChange: (mode: ChatbotMode) => void;
@@ -123,6 +127,22 @@ export function ModeSelector({
             boxShadow: "none",
           }}
         >
+          <Icon
+            as={
+              mode === "smart"
+                ? FaRegSmile
+                : mode === "pro"
+                ? FaSuperpowers
+                : PiBaseballHelmetBold
+            }
+            color={
+              mode === "smart"
+                ? "green.solid"
+                : mode === "pro"
+                ? "yellow.solid"
+                : "blue.solid"
+            }
+          />
           <Text fontSize="xs" fontWeight={isSelected ? "semibold" : "normal"}>
             {config.name}
           </Text>

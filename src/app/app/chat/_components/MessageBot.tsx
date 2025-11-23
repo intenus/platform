@@ -83,7 +83,6 @@ export function MessageBot({ message, status, ...props }: MessageBotProps) {
 
 function TextPart({
   part,
-  isStreaming,
 }: {
   part: TextUIPart;
   isStreaming: boolean;

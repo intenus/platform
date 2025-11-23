@@ -59,7 +59,7 @@ export const buttonRecipe = defineRecipe({
         minW: "9",
         px: "3.5",
         textStyle: "sm",
-        borderRadius: "md",
+        borderRadius: "lg",
         gap: "2",
         _icon: {
           width: "4",
