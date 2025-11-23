@@ -267,6 +267,7 @@ export function ChatBot({}: ChatBotProps) {
           flex: 0,
           padding: "16px",
           display: "flex",
+          flexDirection: "column",
           justifyContent: "center",
           alignContent: "center",
           bottom: "48px",
