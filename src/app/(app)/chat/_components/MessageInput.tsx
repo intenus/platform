@@ -59,6 +59,8 @@ export function MessageInput({
       bg={"bg.subtle/25"}
       shadow={"xs"}
       backdropFilter={"blur(64px)"}
+      align={"center"}
+      justify={"center"}
     >
       <chakra.form w={"full"} onSubmit={handleSubmit} {...props}>
         <Box p={"2"} w={"full"} rounded={["2xl", "3xl"]} bg={"bg/50"}>
