@@ -248,8 +248,7 @@ function buildSDKStrictIntent(
         requires_solver_registration: true,
         min_solver_stake: params.minSolverStake,
         requires_tee_attestation: params.requiresTEE,
-        expected_measurement: params.requiresTEE ? "0x1234567890abcdef" : "0x0000000000000000",
-        purpose: `Swap ${input.inputToken.symbol} to ${input.outputToken.symbol}`
+        min_solver_reputation_score: 50
       }
     }
   };

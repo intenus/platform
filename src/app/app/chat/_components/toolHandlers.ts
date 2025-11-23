@@ -249,23 +249,23 @@ async function submitIntentToRegistry(
       intentPolicy.access_condition.min_solver_reputation_score
     ),
   };
-
+  console.log("Submitting intent with policy params:", policyParams);
   const intentSubmitTx = registry.submitIntentTransaction(blobId, policyParams);
 
-  const { digest: intentDigest } = await signAndExecuteTransaction({
-    transaction: intentSubmitTx,
-  });
+  // const { digest: intentDigest } = await signAndExecuteTransaction({
+  //   transaction: intentSubmitTx,
+  // });
 
-  const result = await suiClient.waitForTransaction({
-    digest: intentDigest,
-    options: {
-      showEffects: true,
-      showEvents: true,
-      showBalanceChanges: true,
-    },
-  });
+  // const result = await suiClient.waitForTransaction({
+  //   digest: intentDigest,
+  //   options: {
+  //     showEffects: true,
+  //     showEvents: true,
+  //     showBalanceChanges: true,
+  //   },
+  // });
 
-  return result;
+  return null;
 }
 
 /**
