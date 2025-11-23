@@ -274,6 +274,51 @@ async function submitIntentToRegistry(
 }
 
 /**
+ * Handle intent classification prediction
+ * Single Responsibility: Predicts optimal solver strategy
+ */
+export const predictIntentClassificationHandler: ToolHandler = async (
+  toolCall,
+  context
+) => {
+  const { addToolOutput } = context;
+
+  try {
+    // Call prediction API
+    const response = await fetch('http://13.211.142.216:8000/predict', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(toolCall.input),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Prediction API error: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+
+    addToolOutput({
+      toolCallId: toolCall.toolCallId,
+      tool: 'predictIntentClassificationTool',
+      output: result,
+    });
+  } catch (error) {
+    console.error('Error predicting intent classification:', error);
+    addToolOutput({
+      toolCallId: toolCall.toolCallId,
+      tool: 'predictIntentClassificationTool',
+      output: {
+        error: `Failed to predict intent classification: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`,
+      },
+    });
+  }
+};
+
+/**
  * Handle intent submission
  * Single Responsibility: Orchestrates intent submission workflow
  * Uses Strategy Pattern for encryption handling
@@ -363,6 +408,7 @@ export const toolHandlers: Record<string, ToolHandler> = {
   checkWalletConnectionTool: checkWalletConnectionHandler,
   getUserBalancesTool: getUserBalancesHandler,
   getBalanceTool: getBalanceHandler,
+  predictIntentClassificationTool: predictIntentClassificationHandler,
   submitIntentTool: submitIntentHandler,
 };
 
