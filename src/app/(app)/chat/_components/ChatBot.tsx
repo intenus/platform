@@ -269,7 +269,7 @@ export function ChatBot({}: ChatBotProps) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          alignContent: "center",
+          alignItems: "center",
           bottom: "48px",
         }}
       >

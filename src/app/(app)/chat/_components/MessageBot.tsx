@@ -118,8 +118,8 @@ function StatusTag({ status }: { status: string }) {
   return (
     <ChakraReactTyped
       strings={[config.label + "..."]}
-      typeSpeed={80}
-      backSpeed={100}
+      typeSpeed={40}
+      backSpeed={50}
       loop
       fontSize={"sm"}
       color={"primary.solid"}
