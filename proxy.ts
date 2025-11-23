@@ -45,7 +45,7 @@ function extractSubdomain(request: NextRequest): string | null {
     return isSubdomain ? hostname.split(".")[0] : null;
 }
 
-export default async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     const subdomain = extractSubdomain(request);
@@ -70,7 +70,20 @@ export default async function middleware(request: NextRequest) {
     if (subdomain === "app") {
         // Rewrite to /app path instead of redirecting
         const url = request.nextUrl.clone();
-        url.pathname = `/app${pathname}`;
+        
+        // Don't rewrite if already under /app
+        if (pathname.startsWith("/app")) {
+            return; // Already correct path
+        }
+        
+        // Handle root path
+        if (pathname === "/") {
+            url.pathname = "/app";
+        } else {
+            // Rewrite all paths under /app
+            url.pathname = `/app${pathname}`;
+        }
+        
         return NextResponse.rewrite(url);
     }
 
