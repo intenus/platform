@@ -1,19 +1,19 @@
 import { CustomUIMessage } from "@/types/ai";
-import { HStack, Span, StackProps, Text } from "@chakra-ui/react";
+import { HStack, Span, Text } from "@chakra-ui/react";
 import { motion } from "framer-motion";
 
-const MotionHStack = motion(HStack);
-
-interface MessageUserProps extends StackProps {
+interface MessageUserProps {
   message: CustomUIMessage;
 }
 
-export function MessageUser({ message, ...props }: MessageUserProps) {
+export function MessageUser({ message }: MessageUserProps) {
   return (
-    <MotionHStack
-      w={["full", "full", "3/5"]}
-      justify="right"
-      {...props}
+    <motion.div
+      style={{
+        width: "100%",
+        display: "flex",
+        justifyContent: "flex-end",
+      }}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{
@@ -24,6 +24,8 @@ export function MessageUser({ message, ...props }: MessageUserProps) {
       }}
     >
       <HStack
+        w={["full", "full", "3/5"]}
+        justify="right"
         p="3"
         rounded="xl"
         bg="bg.subtle/50"
@@ -37,6 +39,6 @@ export function MessageUser({ message, ...props }: MessageUserProps) {
           ))}
         </Text>
       </HStack>
-    </MotionHStack>
+    </motion.div>
   );
 }

@@ -14,7 +14,7 @@
     "@chakra-ui/react": "^3.29.0",
     "@emotion/react": "^11.14.0",
     "@intenus/client-sdk": "^2.6.4",
-    "@intenus/common": "^2.5.0",
+    "@intenus/common": "^2.6.0",
     "@intenus/seal": "^2.4.0",
     "@intenus/walrus": "^2.6.1",
     "@mysten/dapp-kit": "^0.19.9",

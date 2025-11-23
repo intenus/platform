@@ -28,6 +28,7 @@ export interface ToolHandlerContext {
   signAndExecuteTransaction: (params: { transaction: Transaction }) => Promise<{
     digest: string;
   }>;
+  setShowDemoSolution?: (show: boolean) => void;
 }
 
 /**
@@ -340,6 +341,11 @@ export const submitIntentHandler: ToolHandler = async (toolCall, context) => {
         success: true,
       },
     });
+
+    // Show demo solution card after successful submission
+    if (context.setShowDemoSolution) {
+      context.setShowDemoSolution(true);
+    }
   } catch (error) {
     console.error("Error submitting intent:", error);
     addToolOutput({

@@ -16,7 +16,6 @@ import {
 import { ChangeEvent, FormEvent, KeyboardEvent } from "react";
 import { HiArrowUp } from "react-icons/hi";
 import { ModeSelector, ModeSelectorProps } from "./ModeSelector";
-import { SolutionCard } from "./SolutionCard";
 
 interface MessageInputProps extends Omit<HTMLChakraProps<"form">, "onChange"> {
   modeSelectorProps: ModeSelectorProps;
@@ -61,16 +60,6 @@ export function MessageInput({
       shadow={"xs"}
       backdropFilter={"blur(64px)"}
     >
-      <SolutionCard
-        solution={{
-          solverAddress:
-            "0x5f2e2d6f4c4b3a1e5f6d7c8b9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7g8h",
-          solutionId:
-            "0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f",
-          transactionBytes: "0xabcdef1234567890",
-          score: 87,
-        }}
-      />
       <chakra.form w={"full"} onSubmit={handleSubmit} {...props}>
         <Box p={"2"} w={"full"} rounded={["2xl", "3xl"]} bg={"bg/50"}>
           <Textarea

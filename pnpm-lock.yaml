@@ -24,8 +24,8 @@ importers:
         specifier: ^2.6.4
         version: 2.6.4(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
       '@intenus/common':
-        specifier: ^2.5.0
-        version: 2.5.0(typescript@5.9.3)
+        specifier: ^2.6.0
+        version: 2.6.0(typescript@5.9.3)
       '@intenus/seal':
         specifier: ^2.4.0
         version: 2.4.0(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/sui@1.45.0(typescript@5.9.3))(typescript@5.9.3)
@@ -534,8 +534,8 @@ packages:
   '@intenus/common@2.4.4':
     resolution: {integrity: sha512-zlNyDDe0c2nAkCIhcFKOisfQxzcJJD1I0+O2GVJQzUTN14y6fV2IM/7dbLICIKRMf+Uz2tTPFjBTkn/2U2Be2Q==}
 
-  '@intenus/common@2.5.0':
-    resolution: {integrity: sha512-Wsg3gnmVXMu2cTM6BrwOtXXz4rxPL2aE7NgyCsb7JyW7n0cAPVtCLr0xzNugCbUkM5MWFm2Pyavcl8YAyHakxQ==}
+  '@intenus/common@2.6.0':
+    resolution: {integrity: sha512-uIxk86BVlvVXcAJI8r4apIGTVA9ZxsbhCTp3UJTBVTEPRfzZNnErO0mbSXMCqLgqTBIzrsnhdAqaPzoRxG9FAg==}
 
   '@intenus/seal@2.4.0':
     resolution: {integrity: sha512-Dy6lMkVpQZzXwSy4gCiXwjTlW9qZa2RGXPocfDmbczz35B3JKnnjNOP0dK8iB/lWY71JbbqKnZRVUWXTs7EcNA==}
@@ -3806,7 +3806,7 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
-  '@intenus/common@2.5.0(typescript@5.9.3)':
+  '@intenus/common@2.6.0(typescript@5.9.3)':
     dependencies:
       '@mysten/sui': 1.45.0(typescript@5.9.3)
       ajv: 8.17.1

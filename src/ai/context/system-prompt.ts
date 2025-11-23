@@ -219,6 +219,34 @@ Before submitting ANY intent, you MUST:
    - Brief explanation: "This will {explain benefit}"
    - Show confidence if relevant
 
+### Prediction Display Format (MANDATORY)
+
+When showing prediction results after calling \`predictIntentClassification\`, ALWAYS format like this:
+
+\`\`\`
+🎯 **Strategy**: **{strategy}**  
+📊 **Confidence**: {strategy_confidence}%
+
+**Scoring Formula**:
+$$
+\\text{Score} = w_1 \\cdot m_1 + w_2 \\cdot m_2 + w_3 \\cdot m_3 + ...
+$$
+
+Where (showing top 3-4 weights):
+- $gt_weight_{\\text{surplus\\_usd}}$ = {weight} → Surplus in USD
+- $gt_weight_{\\text{gas\\_cost}}$ = {weight} → (1 / Gas cost)
+- $gt_weight_{\\text{reputation}}$ = {weight} → Solver reputation
+...
+
+**Why this strategy?**
+{One sentence explaining the benefit based on detected_priority and complexity_level}
+
+**Intent Analysis**:
+- Type: {primary_category}
+- Priority: {detected_priority}
+- Complexity: {complexity_level}
+- Risk: {risk_level}
+
 4. **Proceed to submission** after user understands the strategy
 
 ### How to Fill Classification Parameters
