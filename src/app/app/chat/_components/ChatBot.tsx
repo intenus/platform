@@ -34,7 +34,7 @@ export function ChatBot({}: ChatBotProps) {
   // Refs và animation controls
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const prevMessagesLengthRef = useRef(0);
-  const { registry } = useIntenusClient();
+  const { registry, getPackageId } = useIntenusClient();
   const { walrusClient } = useIntenusWalrusClient();
 
   const currentAccountRef = useRef(currentAccount);
@@ -105,9 +105,20 @@ export function ChatBot({}: ChatBotProps) {
 
           try {
             const intent = toolCall.input;
+            const isEncrypted = intent.preferences?.privacy?.encrypt_intent;
+            let flow = await walrusClient.intents.storeReturnFlow(intent);
 
-            const flow = await walrusClient.intents.storeReturnFlow(intent);
+            if (isEncrypted) {
+              flow = await walrusClient.encrypted.storeEncryptedIntentReturnFlow(
+                intent,
+                {
+                  packageId: getPackageId(),
+                  
+                }
+              );
+            }
             await flow.encode();
+
 
             const registerTx = flow.register({
               epochs: 1,
@@ -121,6 +132,12 @@ export function ChatBot({}: ChatBotProps) {
 
             await flow.upload({
               digest,
+            });
+
+            const certifyTx = flow.certify();
+            
+            await signAndExecuteTransaction({
+              transaction: certifyTx,
             });
 
             const { blobId } = await flow.getBlob();
