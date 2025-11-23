@@ -29,6 +29,17 @@ export const predictIntentClassificationTool = tool({
   description: 'Predict optimal solver strategy (surplus-first, cost-minimization, or surplus-maximization) based on intent parameters. Call this before submitting intent to help user understand the recommended approach.',
   inputSchema: InputIntentClassificationSchema,
   outputSchema: IntentClassificationOutputSchema,
+  execute: async (params) => {
+    const result = await fetch('http://13.211.142.216:8000/predict', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    });
+    
+    return result.json();
+  },
 });
 
 /**

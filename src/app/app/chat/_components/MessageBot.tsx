@@ -6,6 +6,7 @@ import type { ChatStatus, TextUIPart } from "ai";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import rehypeKatex from "rehype-katex";
 import { ReactTyped } from "react-typed";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -93,7 +94,7 @@ function TextPart({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+      <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeKatex, rehypeRaw]}>
         {part.text}
       </Markdown>
     </motion.div>
