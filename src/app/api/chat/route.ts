@@ -18,7 +18,7 @@ import {
 } from "@/ai/tools/igs-intent/igs-intent-tools";
 
 // Server tools (stub)
-import { submitIntentTool } from "@/ai/tools/server-tools";
+import { submitIntentTool, predictIntentClassificationTool } from "@/ai/tools/server-tools";
 import { checkWalletConnectionTool, getUserBalancesTool,getBalanceTool } from "@/ai/tools/user/user-tool";
 
 export const maxDuration = 30;
@@ -58,6 +58,7 @@ ${LLAMA_API_CONTEXT}
         getSupportedTokensTool,
 
         // Server integration (stub)
+        predictIntentClassificationTool,
         submitIntentTool,
       },
       temperature: 0.7,

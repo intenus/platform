@@ -4,7 +4,7 @@
  */
 
 import { ToolSet } from "ai";
-import { submitIntentTool } from "./server-tools";
+import { submitIntentTool, predictIntentClassificationTool } from "./server-tools";
 
 // IGS Intent Tools
 import {
@@ -32,7 +32,8 @@ import {
  * 2. Intent Creation: buildOptimalIGSIntentTool, analyzeOptimalIGSIntentTool, compareOptimalIntentsTool, quickOptimalTemplateTool
  * 3. Token: getSupportedTokensTool
  * 4. Market Data: getMarketPriceTool, getDEXProtocolInfoTool, getMarketOverviewTool
- * 5. Intent Submission: submitIntentTool
+ * 5. Intent Classification: predictIntentClassificationTool
+ * 6. Intent Submission: submitIntentTool
  */
 export const tools = {
   // === User ===
@@ -45,11 +46,14 @@ export const tools = {
 
   // === Token ===
   getSupportedTokensTool,
-  
+
   // === Market Data ===
   getMarketPriceTool,
   getDEXProtocolInfoTool,
   getMarketOverviewTool,
+
+  // === Intent Classification ===
+  predictIntentClassificationTool,
 
   // === Intent Submission ===
   submitIntentTool,
