@@ -20,6 +20,7 @@ import { useIntenusWalrusClient } from "@/hooks/useIntenusWalrusClient";
 import { Copyright } from "./Copyright";
 import { ChatbotMode, DEFAULT_MODE } from "@/ai/config/chatbot-modes";
 import { Placeholder } from "./Placeholder";
+import { dispatchToolCall, ToolHandlerContext } from "./toolHandlers";
 
 interface ChatBotProps extends BoxProps {}
 export function ChatBot({}: ChatBotProps) {
@@ -47,153 +48,20 @@ export function ChatBot({}: ChatBotProps) {
     useChat<CustomUIMessage>({
       sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
       onToolCall: async ({ toolCall }) => {
-        if (toolCall.dynamic) {
-          return;
-        }
+        // Build context for tool handlers
+        // Follows Dependency Inversion Principle - inject all dependencies
+        const toolHandlerContext: ToolHandlerContext = {
+          addToolOutput,
+          suiClient,
+          currentAccount: currentAccountRef.current,
+          walrusClient,
+          registry,
+          getPackageId,
+          signAndExecuteTransaction,
+        };
 
-        if (toolCall.toolName === "checkWalletConnectionTool") {
-          console.log("Handling checkWalletConnectionTool");
-
-          const account = currentAccountRef.current;
-
-          addToolOutput({
-            toolCallId: toolCall.toolCallId,
-            tool: "checkWalletConnectionTool",
-            output: {
-              connected: !!account,
-              address: account?.address || null,
-            },
-          });
-          return;
-        }
-
-        if (toolCall.toolName === "getUserBalancesTool") {
-          addToolOutput({
-            toolCallId: toolCall.toolCallId,
-            tool: "getUserBalancesTool",
-            output: await suiClient.getAllBalances({
-              owner: toolCall.input.owner,
-            }),
-          });
-        }
-
-        if (toolCall.toolName === "getBalanceTool") {
-          addToolOutput({
-            toolCallId: toolCall.toolCallId,
-            tool: "getBalanceTool",
-            output: await suiClient.getBalance({
-              owner: toolCall.input.owner,
-              coinType: toolCall.input.coinType,
-            }),
-          });
-        }
-
-        if (toolCall.toolName === "submitIntentTool") {
-          const account = currentAccountRef.current;
-
-          if (!account) {
-            console.error("No wallet connected");
-            addToolOutput({
-              toolCallId: toolCall.toolCallId,
-              tool: "submitIntentTool",
-              output: {
-                error: "No wallet connected. Please connect your wallet first.",
-              },
-            });
-            return;
-          }
-
-          try {
-            const intent = toolCall.input;
-            const isEncrypted = intent.preferences?.privacy?.encrypt_intent;
-            let flow = await walrusClient.intents.storeReturnFlow(intent);
-
-            if (isEncrypted) {
-              flow = await walrusClient.encrypted.storeEncryptedIntentReturnFlow(
-                intent,
-                {
-                  packageId: getPackageId(),
-                  
-                }
-              );
-            }
-            await flow.encode();
-
-
-            const registerTx = flow.register({
-              epochs: 1,
-              owner: account.address,
-              deletable: true,
-            });
-
-            const { digest } = await signAndExecuteTransaction({
-              transaction: registerTx,
-            });
-
-            await flow.upload({
-              digest,
-            });
-
-            const certifyTx = flow.certify();
-            
-            await signAndExecuteTransaction({
-              transaction: certifyTx,
-            });
-
-            const { blobId } = await flow.getBlob();
-
-            const intentObject = intent.object;
-            const intentPolicy = intentObject.policy;
-
-            const intentSubmitTx = registry.submitIntentTransaction(blobId, {
-              auto_revoke_ms: intentPolicy.auto_revoke_time,
-              solver_access_start_ms:
-                intentPolicy.solver_access_window.start_ms,
-              solver_access_end_ms: intentPolicy.solver_access_window.end_ms,
-              requires_solver_registration:
-                intentPolicy.access_condition.requires_solver_registration,
-              min_solver_stake: intentPolicy.access_condition.min_solver_stake,
-              requires_attestation:
-                intentPolicy.access_condition.requires_tee_attestation,
-              min_solver_reputation_score:
-                intentPolicy.access_condition.min_solver_reputation_score,
-            });
-
-            const { digest: intentDigest } = await signAndExecuteTransaction({
-              transaction: intentSubmitTx,
-            });
-
-            const result = await suiClient.waitForTransaction({
-              digest: intentDigest,
-              options: {
-                showEffects: true,
-                showEvents: true,
-                showBalanceChanges: true,
-              },
-            });
-
-            addToolOutput({
-              toolCallId: toolCall.toolCallId,
-              tool: "submitIntentTool",
-              output: {
-                intentSubmitResult: result,
-                success: true,
-              },
-            });
-          } catch (error) {
-            console.error("Error submitting intent:", error);
-            addToolOutput({
-              toolCallId: toolCall.toolCallId,
-              tool: "submitIntentTool",
-              output: {
-                error: `Failed to submit intent: ${
-                  error instanceof Error ? error.message : "Unknown error"
-                }`,
-                success: false,
-              },
-            });
-          }
-        }
+        // Delegate to dispatcher - Single Responsibility Principle
+        await dispatchToolCall(toolCall, toolHandlerContext);
       },
     });
 
