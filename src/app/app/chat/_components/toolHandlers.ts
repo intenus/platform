@@ -245,27 +245,32 @@ async function submitIntentToRegistry(
     min_solver_stake: String(intentPolicy.access_condition.min_solver_stake),
     requires_attestation:
       intentPolicy.access_condition.requires_tee_attestation,
-    min_solver_reputation_score: Number(
-      intentPolicy.access_condition.min_solver_reputation_score
-    ),
+    min_solver_reputation_score: (() => {
+      const score = intentPolicy.access_condition.min_solver_reputation_score;
+      const numScore = typeof score === 'number' ? score : Number(score || 50);
+      return Math.max(0, Math.min(10000, Math.floor(numScore))); // Clamp between 0-10000
+    })(),
   };
   console.log("Submitting intent with policy params:", policyParams);
+  console.log("min_solver_reputation_score type:", typeof policyParams.min_solver_reputation_score);
+  console.log("min_solver_reputation_score value:", policyParams.min_solver_reputation_score);
+  
   const intentSubmitTx = registry.submitIntentTransaction(blobId, policyParams);
 
-  // const { digest: intentDigest } = await signAndExecuteTransaction({
-  //   transaction: intentSubmitTx,
-  // });
+  const { digest: intentDigest } = await signAndExecuteTransaction({
+    transaction: intentSubmitTx,
+  });
 
-  // const result = await suiClient.waitForTransaction({
-  //   digest: intentDigest,
-  //   options: {
-  //     showEffects: true,
-  //     showEvents: true,
-  //     showBalanceChanges: true,
-  //   },
-  // });
+  const result = await suiClient.waitForTransaction({
+    digest: intentDigest,
+    options: {
+      showEffects: true,
+      showEvents: true,
+      showBalanceChanges: true,
+    },
+  });
 
-  return null;
+  return result;
 }
 
 /**

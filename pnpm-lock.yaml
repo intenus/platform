@@ -21,11 +21,11 @@ importers:
         specifier: ^11.14.0
         version: 11.14.0(@types/react@19.2.6)(react@19.2.0)
       '@intenus/client-sdk':
-        specifier: ^2.6.3
-        version: 2.6.3(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
+        specifier: ^2.6.4
+        version: 2.6.4(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
       '@intenus/common':
-        specifier: ^2.4.4
-        version: 2.4.4(typescript@5.9.3)
+        specifier: ^2.5.0
+        version: 2.5.0(typescript@5.9.3)
       '@intenus/seal':
         specifier: ^2.4.0
         version: 2.4.0(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/sui@1.45.0(typescript@5.9.3))(typescript@5.9.3)
@@ -522,29 +522,23 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@intenus/client-sdk@2.6.3':
-    resolution: {integrity: sha512-yEzQxfB4mAp+4kP2lxJAsLinwL2UAT8xMDoV7iDqfZJcNId6Ix5X/k26/5QEalpKPD6cQe2m8Xqi8q6r+qBckg==}
+  '@intenus/client-sdk@2.6.4':
+    resolution: {integrity: sha512-nH7tcmonLRznnM5xavxJiAHku9xnMD4FiLCGW59VIuyvOJzu9qwag2zl39+H0HC4mjUz5JvVOsCTTiXziEv9tA==}
     peerDependencies:
       '@mysten/seal': ^0.9.3
       '@mysten/walrus': ^0.8.3
 
-  '@intenus/common@2.4.3':
-    resolution: {integrity: sha512-fJuoWtRPznt9HM9G/tXz+A9rguXM2FQ8u9iEgr/aw9+Ds72bGMGcmIlNZAI6kpXBFEYv37CZiYBrO8WVDxlTPA==}
-
   '@intenus/common@2.4.4':
     resolution: {integrity: sha512-zlNyDDe0c2nAkCIhcFKOisfQxzcJJD1I0+O2GVJQzUTN14y6fV2IM/7dbLICIKRMf+Uz2tTPFjBTkn/2U2Be2Q==}
+
+  '@intenus/common@2.5.0':
+    resolution: {integrity: sha512-Wsg3gnmVXMu2cTM6BrwOtXXz4rxPL2aE7NgyCsb7JyW7n0cAPVtCLr0xzNugCbUkM5MWFm2Pyavcl8YAyHakxQ==}
 
   '@intenus/seal@2.4.0':
     resolution: {integrity: sha512-Dy6lMkVpQZzXwSy4gCiXwjTlW9qZa2RGXPocfDmbczz35B3JKnnjNOP0dK8iB/lWY71JbbqKnZRVUWXTs7EcNA==}
     peerDependencies:
       '@mysten/seal': ^0.9.3
       '@mysten/sui': ^1.44.0
-
-  '@intenus/walrus@2.4.1':
-    resolution: {integrity: sha512-AIGyB6+VQi76I22d9C8SmQxQvotq1V1aC+PPR7l3aD8Ndr8XbPr15y0STuSfZ+ojjCfAjLRMa7WvMEajjDo42Q==}
-    peerDependencies:
-      '@mysten/sui': ^1.44.0
-      '@mysten/walrus': ^0.8.3
 
   '@intenus/walrus@2.6.1':
     resolution: {integrity: sha512-XmPE0Z9gj4JGkAyKikuo+XGsa4Rdq91VQhQgAqtOPBuoWJoUUJhCPALUQDJAXAJmETt8ACt4Rf5l78vozgtKpg==}
@@ -3751,24 +3745,13 @@ snapshots:
   '@img/sharp-win32-x64@0.34.5':
     optional: true
 
-  '@intenus/client-sdk@2.6.3(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)':
+  '@intenus/client-sdk@2.6.4(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)':
     dependencies:
-      '@intenus/common': 2.4.3(typescript@5.9.3)
-      '@intenus/walrus': 2.4.1(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
+      '@intenus/common': 2.4.4(typescript@5.9.3)
+      '@intenus/walrus': 2.6.1(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)
       '@mysten/seal': 0.9.4(typescript@5.9.3)
       '@mysten/sui': 1.45.0(typescript@5.9.3)
       '@mysten/walrus': 0.8.4(typescript@5.9.3)
-    transitivePeerDependencies:
-      - '@gql.tada/svelte-support'
-      - '@gql.tada/vue-support'
-      - typescript
-
-  '@intenus/common@2.4.3(typescript@5.9.3)':
-    dependencies:
-      '@mysten/sui': 1.45.0(typescript@5.9.3)
-      ajv: 8.17.1
-      ajv-formats: 2.1.1(ajv@8.17.1)
-      zod: 4.1.12
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
       - '@gql.tada/vue-support'
@@ -3785,21 +3768,22 @@ snapshots:
       - '@gql.tada/vue-support'
       - typescript
 
-  '@intenus/seal@2.4.0(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/sui@1.45.0(typescript@5.9.3))(typescript@5.9.3)':
+  '@intenus/common@2.5.0(typescript@5.9.3)':
     dependencies:
-      '@intenus/common': 2.4.4(typescript@5.9.3)
-      '@mysten/seal': 0.9.4(typescript@5.9.3)
       '@mysten/sui': 1.45.0(typescript@5.9.3)
+      ajv: 8.17.1
+      ajv-formats: 2.1.1(ajv@8.17.1)
+      zod: 4.1.12
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
       - '@gql.tada/vue-support'
       - typescript
 
-  '@intenus/walrus@2.4.1(@mysten/sui@1.45.0(typescript@5.9.3))(@mysten/walrus@0.8.4(typescript@5.9.3))(typescript@5.9.3)':
+  '@intenus/seal@2.4.0(@mysten/seal@0.9.4(typescript@5.9.3))(@mysten/sui@1.45.0(typescript@5.9.3))(typescript@5.9.3)':
     dependencies:
-      '@intenus/common': 2.4.3(typescript@5.9.3)
+      '@intenus/common': 2.4.4(typescript@5.9.3)
+      '@mysten/seal': 0.9.4(typescript@5.9.3)
       '@mysten/sui': 1.45.0(typescript@5.9.3)
-      '@mysten/walrus': 0.8.4(typescript@5.9.3)
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
       - '@gql.tada/vue-support'
