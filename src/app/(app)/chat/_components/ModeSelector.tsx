@@ -33,52 +33,7 @@ export function ModeSelector({
   const mode = selectedMode;
   const config = CHATBOT_MODES[mode];
   const isSelected = selectedMode === mode;
-
-  // return (
-  //   <Box w="full" pb={2}>
-  //     <HStack gap={2} justify="center" w="full">
-  //       {modes.map((mode) => {
-  //         const config = CHATBOT_MODES[mode];
-  //         const isSelected = selectedMode === mode;
-
-  //         return (
-  //           <MotionButton
-  //             key={mode}
-  //             size="sm"
-  //             variant={isSelected ? "solid" : "outline"}
-  //             colorScheme={isSelected ? "blue" : "gray"}
-  //             onClick={() => onModeChange(mode)}
-  //             whileHover={{ scale: 1.05 }}
-  //             whileTap={{ scale: 0.95 }}
-  //             transition={{ duration: 0.2 }}
-  //             px={4}
-  //             py={2}
-  //             fontSize="sm"
-  //             fontWeight={isSelected ? "600" : "400"}
-  //             _hover={{
-  //               bg: isSelected ? "blue.600" : "gray.100",
-  //               borderColor: isSelected ? "blue.600" : "gray.300",
-  //             }}
-  //           >
-  //             <Text fontSize="xs" fontWeight={isSelected ? "semibold" : "normal"}>
-  //               {config.name}
-  //             </Text>
-  //           </MotionButton>
-  //         );
-  //       })}
-  //     </HStack>
-  //     <Text
-  //       fontSize="xs"
-  //       color="gray.500"
-  //       textAlign="center"
-  //       mt={2}
-  //       px={4}
-  //     >
-  //       {CHATBOT_MODES[selectedMode].description}
-  //     </Text>
-  //   </Box>
-  // );
-
+  
   return (
     <MenuRoot>
       <MenuTrigger asChild>

@@ -1,38 +1,26 @@
-/* eslint-disable jsx-a11y/alt-text */
 import { Center, Heading, Image, Text, VStack } from "@chakra-ui/react";
-import NextImage from "next/image";
+import { ChatbotDemo } from "./_components/ChatbotDemo";
 
 export default function Home() {
   return (
-    <Center px={"64"} as="main" flexDirection="column" gap="4" w={"full"} flex={1}>
+    <Center
+      px={["4", "8", "16", "64"]}
+      as="main"
+      flexDirection="column"
+      gap="4"
+      w={"full"}
+      flex={1}
+    >
       <VStack>
-        <Heading as={"h1"} size={"6xl"}>
+        <Heading as={"h1"} size={["4xl", "5xl", "6xl"]} textAlign={"center"}>
           Intent-Based Protocol
         </Heading>
-        <Text>
-          Optimized for African micro-finance and ultra-low-fee transactions on
-          Hedera
+        <Text textAlign={"center"} maxW={"68ch"} color={"fg.subtle"}>
+          Universal intent-based infrastructure where AI Agents transform your
+          natural language into optimal on-chain execution
         </Text>
       </VStack>
-      <Center>
-        <Image w={"full"} asChild>
-          <NextImage
-            src={"/assets/poster-demo-chatbot.png"}
-            alt="poster demo chatbot"
-            width={512}
-            height={290}
-          />
-        </Image>
-      </Center>
-      <Image
-        asChild
-        pointerEvents={"none"}
-        zIndex={"-1"}
-        position={"absolute"}
-        translate={"0 128px"}
-      >
-        <NextImage src={"/assets/primary-glow.png"} alt="primary glow" fill />
-      </Image>
+      <ChatbotDemo />
     </Center>
   );
 }

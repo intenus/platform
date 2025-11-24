@@ -63,7 +63,7 @@ export function Brands(props: BrandsProps) {
   return (
     <HStack>
       <Favicon size="md"/>
-      <Heading fontSize="2xl">
+      <Heading fontSize="2xl" color={"primary.100"}>
         Intenus
       </Heading>
     </HStack>
