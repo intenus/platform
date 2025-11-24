@@ -4,14 +4,12 @@ import {
   VStack,
   Box,
   HStack,
-  Icon,
   StackProps,
   Button,
   chakra,
   Center,
   Text,
 } from "@chakra-ui/react";
-import { HiArrowUp } from "react-icons/hi";
 import { ReactTyped } from "react-typed";
 import { motion } from "framer-motion";
 
@@ -111,7 +109,6 @@ export function ChatbotDemo({}: ChatDemoProps) {
           >
             <Button colorPalette="primary" transition={"all ease-in-out 0.25s"}>
               Explore now
-              <Icon as={HiArrowUp} />
             </Button>
           </motion.div>
         </HStack>

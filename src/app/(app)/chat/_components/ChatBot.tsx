@@ -275,14 +275,19 @@ export function ChatBot({}: ChatBotProps) {
       >
         {showDemoSolution && (
           <motion.div
+            style={{
+              width: "100%",
+            }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
             <SolutionCard
               solution={{
-                solverAddress: "0x5f2e2d6f4c4b3a1e5f6d7c8b9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7g8h",
-                solutionId: "0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f",
+                solverAddress:
+                  "0x5f2e2d6f4c4b3a1e5f6d7c8b9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7g8h",
+                solutionId:
+                  "0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t1u2v3w4x5y6z7a8b9c0d1e2f",
                 transactionBytes: "0xabcdef1234567890",
                 score: 87,
               }}

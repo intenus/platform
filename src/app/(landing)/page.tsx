@@ -1,12 +1,15 @@
-import { Center, Heading, Image, Text, VStack } from "@chakra-ui/react";
+import { Center, Heading, HStack, Image, Text, VStack } from "@chakra-ui/react";
 import { ChatbotDemo } from "./_components/ChatbotDemo";
 
 export default function Home() {
   return (
-    <Center
+    <VStack
       px={["4", "8", "16", "64"]}
+      pt={["8", "16", "48"]}
       as="main"
       flexDirection="column"
+      justify={"start"}
+      align={"center"}
       gap="4"
       w={"full"}
       flex={1}
@@ -21,6 +24,11 @@ export default function Home() {
         </Text>
       </VStack>
       <ChatbotDemo />
-    </Center>
+      <HStack position={"absolute"} bottom={"4"}>
+        <Text fontSize={"sm"} color={"fg"}>
+          Wynn Chill Lab © 2025
+        </Text>
+      </HStack>
+    </VStack>
   );
 }

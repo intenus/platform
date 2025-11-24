@@ -38,6 +38,9 @@ export function Header(props: HeaderProps) {
                 color={"fg.subtle"}
                 transition={"all ease-in-out 0.25s"}
                 _hover={{ color: "fg", textDecoration: "none" }}
+                target="_blank"
+                rel="noopener noreferrer"
+                unstyled
               >
                 {link.name}
               </Link>
