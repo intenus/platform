@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <VStack w={"full"} h={"full"} position={"relative"} p={"4"} overflow={"hidden"}>
+    <VStack w={"full"} h={"full"} position={"relative"} overflow={"hidden"}>
       {children}
     </VStack>
   );
