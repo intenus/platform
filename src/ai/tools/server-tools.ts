@@ -30,7 +30,7 @@ export const predictIntentClassificationTool = tool({
   inputSchema: InputIntentClassificationSchema,
   outputSchema: IntentClassificationOutputSchema,
   execute: async (params) => {
-    const result = await fetch('http://13.211.142.216:8000/predict', {
+    const result = await fetch('http://3.26.14.143:8000/predict', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

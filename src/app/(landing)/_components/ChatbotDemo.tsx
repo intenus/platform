@@ -12,8 +12,9 @@ import {
 } from "@chakra-ui/react";
 import { ReactTyped } from "react-typed";
 import { motion } from "framer-motion";
+import { useRouter} from "next/navigation";
 
-type ChatDemoProps = StackProps
+type ChatDemoProps = StackProps;
 const ChakraReactTyped = chakra(ReactTyped);
 
 interface Message {
@@ -61,6 +62,8 @@ export function ChatbotDemo({}: ChatDemoProps) {
       }: ${msg.text}</span>`
   );
 
+  const router = useRouter();
+
   return (
     <VStack
       w={["full", "full", "3/4"]}
@@ -107,7 +110,13 @@ export function ChatbotDemo({}: ChatDemoProps) {
             whileTap={{ scale: 0.95 }}
             transition={{ duration: 0.2 }}
           >
-            <Button colorPalette="primary" transition={"all ease-in-out 0.25s"}>
+            <Button
+              colorPalette="primary"
+              transition={"all ease-in-out 0.25s"}
+              onClick={() => {
+                router.push("/chat");
+              }}
+            >
               Explore now
             </Button>
           </motion.div>
